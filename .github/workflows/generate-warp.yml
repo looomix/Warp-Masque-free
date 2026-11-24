@@ -30,7 +30,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VER=$(curl -sL https://api.github.com/repos/Diniboy1123/usque/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          VER=$(curl -sL -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github+json" https://api.github.com/repos/Diniboy1123/usque/releases/latest | jq -r '.tag_name // empty' | sed 's/^v//')
+          if [ -z "$VER" ]; then VER=4.2.1; fi
           echo "usque 版本 $VER"
           curl -sL -o usque.zip "https://github.com/Diniboy1123/usque/releases/download/v${VER}/usque_${VER}_linux_amd64.zip"
           unzip -oq usque.zip
