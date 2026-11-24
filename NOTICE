@@ -1,17 +1,14 @@
-MASQUE To Clash (static edition)
+Cloudflare WARP Config Generator (MASQUE To Clash)
 
-An independent, browser-only converter inspired by the option set and
-Clash/Mihomo configuration structure of:
+An independent implementation inspired by the option sets and configuration
+structures of:
 
   https://m2c.pages.dev/
   https://masque.pages.dev/
   https://github.com/KJGX66F/usque-custom-pro
 
-No source code was copied from those projects. The registration API used by
-the original site enforces a referrer whitelist, so this GitHub Pages edition
-cannot always register an account directly; it accepts an already generated
-MASQUE account JSON and can use a user-supplied compatible registration relay.
-Subscriptions are encoded locally in the URL fragment unless an optional
-/api/sub compatible hosting API is configured.
+This project adds a self-deployable Cloudflare Worker relay so that a static
+GitHub Pages site can register WARP devices and issue Clash subscriptions.
+No source code was copied from the referenced projects.
 
 Distributed under AGPL-3.0-only. See LICENSE for the full text.
