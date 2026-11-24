@@ -3,111 +3,94 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MASQUE To Clash · 一键转换器</title>
-    <meta name="description" content="把 Cloudflare WARP MASQUE 账号转换成 Clash / Mihomo YAML 配置，并生成可分享的订阅链接。纯前端实现。" />
+    <title>Cloudflare WARP 配置生成器 · MASQUE To Clash</title>
+    <meta name="description" content="一键注册 Cloudflare WARP，生成 WireGuard/AmneziaWG .conf、MASQUE Clash YAML 与订阅链接。" />
     <meta name="theme-color" content="#0f172a" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f172a'/%3E%3Cpath d='M14 16h10l16 20V16h10v32H40L24 28v20H14z' fill='%2360a5fa'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="assets/style.css" />
   </head>
   <body>
     <div class="glow" aria-hidden="true"></div>
-
-    <header class="topbar">
-      <div class="wrap nav">
-        <a class="brand" href="#top"><span class="mark">M2C</span><span>MASQUE <b>To</b> Clash</span></a>
-        <nav><a href="#generator">转换器</a><a href="#how">工作原理</a><a href="#faq">FAQ</a></nav>
-        <a class="btn btn-ghost" href="https://github.com/looomix/MASQUE-To-Clash" target="_blank" rel="noopener">GitHub</a>
-      </div>
-    </header>
+    <header class="topbar"><div class="wrap nav">
+      <a class="brand" href="#top"><span class="mark">WARP</span><span>Cloudflare WARP <b>配置生成器</b></span></a>
+      <nav><a href="#generator">生成器</a><a href="#how">原理</a><a href="#faq">FAQ</a></nav>
+      <a class="btn btn-ghost" href="https://github.com/looomix/MASQUE-To-Clash" target="_blank" rel="noopener">GitHub</a>
+    </div></header>
 
     <main>
       <section class="hero wrap" id="top">
-        <div class="eyebrow"><span></span> WARP MASQUE → Clash / Mihomo · 纯前端</div>
-        <h1>MASQUE To Clash<br /><span>一键转换器</span></h1>
-        <p class="lead">把 Cloudflare WARP MASQUE 账号转换成可直接导入 Clash / Mihomo 的 YAML 配置，并生成可复制、可分享的订阅链接。所有转换都在浏览器本地完成。</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="#generator">开始转换</a>
-          <a class="btn btn-secondary" href="https://m2c.pages.dev/" target="_blank" rel="noopener">参考原站</a>
-        </div>
-        <div class="chips"><span>H3 / H2 / H3-L4</span><span>IPv4 / IPv6</span><span>随机端口</span><span>Fake-IP</span><span>本地订阅链接</span></div>
+        <div class="eyebrow"><span></span> WireGuard / AmneziaWG / MASQUE · 本地生成</div>
+        <h1>Cloudflare WARP<br /><span>配置生成器</span></h1>
+        <p class="lead">一键注册 WARP 设备，生成本地可用的 WireGuard / AmneziaWG <code>.conf</code>、MASQUE 的 Clash / Mihomo YAML，以及可导入的订阅链接。密钥在浏览器中生成，注册只经过你自己部署的中继。</p>
+        <div class="hero-actions"><a class="btn btn-primary" href="#generator">开始生成</a><a class="btn btn-secondary" href="#how">了解原理</a></div>
+        <div class="chips"><span>AWG 1.5 / 2.0 / 3.x</span><span>MASQUE H3 / H2</span><span>订阅链接</span><span>无服务器存储</span></div>
       </section>
 
       <section class="wrap section" id="generator">
-        <div class="section-head"><div><p class="kicker">CONVERTER</p><h2>配置生成器</h2><p class="muted">先获取 MASQUE 账号，再按需调整参数；点击生成即可得到 YAML 与订阅链接。</p></div></div>
+        <div class="section-head"><div><p class="kicker">GENERATOR</p><h2>三步生成配置</h2><p class="muted">先部署或填写一个 WARP 注册中继，然后一键注册并选择输出格式。</p></div></div>
 
         <div class="card step">
-          <div class="step-head"><span>01</span><div><h3>MASQUE 账号</h3><p>一键注册受服务方来源白名单限制；失败时可粘贴 m2c 生成的账号 JSON。</p></div></div>
+          <div class="step-head"><span>01</span><div><h3>注册中继</h3><p>浏览器不能直连 Cloudflare 注册接口（CORS 与来源白名单），需要一个免费 Cloudflare Worker 转发。</p></div></div>
           <div class="account-actions">
-            <button type="button" class="btn btn-primary" id="oneClick">一键注册并生成</button>
-            <a class="btn btn-secondary" href="https://m2c.pages.dev/" target="_blank" rel="noopener">打开原站注册</a>
-            <button type="button" class="btn btn-mini" id="loadDemo">填入示例结构</button>
+            <a class="btn btn-primary" href="https://deploy.workers.cloudflare.com/?url=https://github.com/looomix/MASQUE-To-Clash" target="_blank" rel="noopener">一键部署中继 Worker</a>
+            <button type="button" class="btn btn-mini" id="checkWorker">检查连接</button>
           </div>
-          <div class="field">
-            <label for="accountText">账号 JSON（含 private_key、endpoint_pub_key、ipv4）</label>
-            <textarea id="accountText" rows="6" spellcheck="false" placeholder='{ "private_key": "...", "endpoint_pub_key": "-----BEGIN PUBLIC KEY-----...", "ipv4": "172.16.0.2", "ipv6": "..." }'></textarea>
-          </div>
-          <div class="field-grid">
-            <div class="field"><label for="regApi">注册接口（可选，自定义 Worker）</label><input id="regApi" type="text" value="https://usque-register-server.pages.dev/0906?raw=true" /></div>
-            <div class="field"><label for="subApi">订阅托管 API（可选，兼容 /api/sub）</label><input id="subApi" type="text" placeholder="https://your-worker.workers.dev" /></div>
-          </div>
-          <p class="hint" id="accountStatus">等待账号…</p>
+          <div class="field"><label for="workerUrl">Worker 地址（部署后填入，例如 https://xxx.workers.dev）</label><input id="workerUrl" type="text" placeholder="https://your-worker.workers.dev" /></div>
+          <div class="account-actions"><button type="button" class="btn btn-primary btn-lg" id="oneClick">一键注册 WARP 并生成</button><button type="button" class="btn btn-mini" id="loadDemo">填入示例账号</button></div>
+          <p class="hint" id="accountStatus">等待注册中继…</p>
+          <div class="field"><label for="accountText">或手动粘贴已有 WARP / MASQUE 账号 JSON（可从 m2c 或 wgcf 获取）</label><textarea id="accountText" rows="5" spellcheck="false" placeholder='{ "private_key": "...", "endpoint_pub_key": "...", "ipv4": "172.16.0.2" }'></textarea></div>
         </div>
 
         <div class="card step">
-          <div class="step-head"><span>02</span><div><h3>节点与策略</h3><p>参照 m2c.pages.dev 的选项，生成 Mihomo 兼容配置。</p></div></div>
+          <div class="step-head"><span>02</span><div><h3>配置选项</h3><p>WireGuard / AmneziaWG 档位与 MASQUE 节点策略。</p></div></div>
           <div class="field-grid">
-            <div class="field"><label>网络模式</label><div class="segmented" id="networkMode"><label><input type="radio" name="network" value="h3" checked /><span>H3</span></label><label><input type="radio" name="network" value="h2" /><span>H2</span></label><label><input type="radio" name="network" value="h3-l4proxy" /><span>H3-L4</span></label></div></div>
-            <div class="field"><label>Endpoint 范围</label><select id="endpointMode"><option value="all">全部（官方 v4 + v6）</option><option value="v4">仅 IPv4</option><option value="v6">仅 IPv6</option><option value="single">单端点 / 域名</option></select></div>
-            <div class="field"><label for="singleEndpoint">自定义端点</label><input id="singleEndpoint" type="text" value="www.cloudflareaccess.com" /></div>
-            <div class="field"><label>端口</label><select id="portMode"><option value="random">随机（500/4500/8095/443）</option><option value="500">500</option><option value="4500">4500</option><option value="8095">8095</option><option value="443">443</option></select></div>
+            <div class="field"><label>AWG 档位（仅影响 .conf）</label><select id="profile"><option value="legacy">AWG 1.5 Legacy</option><option value="awg2" selected>AWG 2.0（推荐）</option><option value="awg3">AWG 3.0 WARP-safe</option><option value="awg31">AWG 3.1 WARP-safe</option></select></div>
+            <div class="field"><label>MASQUE 模式</label><select id="network"><option value="h3">H3（默认）</option><option value="h2">H2</option><option value="h3-l4proxy">H3-L4</option></select></div>
+            <div class="field"><label>Endpoint 范围</label><select id="endpointMode"><option value="all">全部（官方 v4 + v6）</option><option value="v4">仅 IPv4</option><option value="v6">仅 IPv6</option></select></div>
+            <div class="field"><label>WG 端口</label><select id="wgPort"><option>2408</option><option>4500</option><option>500</option><option>1701</option></select></div>
+            <div class="field"><label>MASQUE 端口</label><select id="portMode"><option value="random">随机（443/500/1701/4500/8095）</option><option>443</option><option>500</option><option>1701</option><option>4500</option><option>8095</option></select></div>
             <div class="field"><label for="sni">SNI</label><input id="sni" type="text" value="www.cloudflareaccess.com" /></div>
             <div class="field"><label for="cc">拥塞控制</label><select id="cc"><option>bbr</option><option>cubic</option><option>reno</option></select></div>
-            <div class="field"><label for="dnsMode">DNS 增强模式</label><select id="dnsMode"><option value="fake-ip">Fake-IP（虚拟模式）</option><option value="redir-host">Redir-Host</option></select></div>
             <div class="field"><label for="testUrl">延迟测试地址</label><input id="testUrl" type="text" value="https://cloudflare.com/cdn-cgi/trace" /></div>
-            <div class="field"><label for="interval">测试间隔（秒）</label><input id="interval" type="number" min="60" value="300" /></div>
-            <div class="field"><label for="tolerance">容差（ms）</label><input id="tolerance" type="number" min="0" value="30" /></div>
-            <div class="field"><label for="namePrefix">节点名称后缀</label><input id="namePrefix" type="text" value="MASQUE导航" /></div>
           </div>
           <div class="toggle-row">
-            <label class="switch"><input type="checkbox" id="ipv6" /><span></span>启用 IPv6 节点</label>
-            <label class="switch"><input type="checkbox" id="udp" checked /><span></span>启用 UDP</label>
-            <label class="switch"><input type="checkbox" id="rules" checked /><span></span>包含智能分流规则</label>
+            <label class="switch"><input type="checkbox" id="ipv6" checked /><span></span>包含 IPv6</label>
+            <label class="switch"><input type="checkbox" id="udp" checked /><span></span>UDP</label>
+            <label class="switch"><input type="checkbox" id="rules" checked /><span></span>包含分流规则</label>
           </div>
-          <div class="generate-row"><button type="button" class="btn btn-primary btn-lg" id="generate">生成 YAML 与订阅链接</button><span class="hint">无需构建，点击即生成。</span></div>
+          <div class="generate-row"><button type="button" class="btn btn-primary btn-lg" id="generate">重新生成输出</button><span class="hint">注册成功后会自动生成一次。</span></div>
         </div>
 
         <section class="card result" id="result" hidden>
           <div class="result-head"><div><p class="kicker">OUTPUT</p><h3 id="resultTitle">生成完成</h3><p class="muted" id="resultMeta"></p></div>
-            <div class="actions"><button type="button" class="btn btn-mini" id="copyYaml">复制 YAML</button><button type="button" class="btn btn-mini" id="downloadYaml">下载 YAML</button></div>
+            <div class="actions"><button type="button" class="btn btn-mini" id="copyOutput">复制</button><button type="button" class="btn btn-mini" id="downloadOutput">下载文件</button></div>
           </div>
-          <div class="field sub-field"><label for="subLink">订阅链接（本地解码）</label><div class="input-action"><input id="subLink" type="text" readonly /><button type="button" class="btn btn-mini" id="copySub">复制</button><button type="button" class="btn btn-mini" id="openSub">打开</button></div></div>
-          <div class="field sub-field"><label for="remoteSub">远程订阅地址（填写订阅托管 API 后生成）</label><div class="input-action"><input id="remoteSub" type="text" readonly placeholder="未配置订阅托管 API" /><button type="button" class="btn btn-mini" id="copyRemote">复制</button></div></div>
-          <pre class="codebox" id="yamlPreview"></pre>
-          <p class="hint note">订阅链接把 YAML 编码在 URL 片段中，方便本机恢复与分享；Clash 客户端直接导入远程订阅需要配置上面的订阅托管 API（兼容 <code>/api/sub</code> 契约）。链接含私钥，请勿公开传播。</p>
+          <div class="tabs"><button type="button" class="tab active" data-tab="conf">WireGuard .conf</button><button type="button" class="tab" data-tab="yaml">Clash YAML</button><button type="button" class="tab" data-tab="sub">订阅链接</button></div>
+          <pre class="codebox" id="output"></pre>
+          <p class="hint note">配置与订阅链接都包含私钥，请当作凭据保管。静态站点不保存任何账号；刷新页面后请重新粘贴或用 Worker 重新注册。</p>
         </section>
       </section>
 
       <section class="wrap section" id="how">
-        <div class="section-head"><div><p class="kicker">HOW</p><h2>它是怎么工作的</h2></div></div>
+        <div class="section-head"><div><p class="kicker">HOW</p><h2>工作原理</h2></div></div>
         <div class="grid-3">
-          <article class="card mini"><span>01</span><h3>读取账号</h3><p>从 JSON 中提取 <code>private_key</code>、<code>endpoint_pub_key</code>、<code>ipv4/ipv6</code>，去除 PEM 头尾与空白。</p></article>
-          <article class="card mini"><span>02</span><h3>枚举节点</h3><p>按 IPv4 / IPv6 范围与端口策略组合官方端点，生成 <code>type: masque</code> 的 Mihomo 节点。</p></article>
-          <article class="card mini"><span>03</span><h3>组装订阅</h3><p>套用 DNS、Fake-IP、策略组与规则提供器，输出 YAML，并编码为可分享的本地订阅链接。</p></article>
+          <article class="card mini"><span>01</span><h3>本地生成密钥</h3><p>浏览器用 Web Crypto 生成 X25519（WireGuard）与 P-256（MASQUE）密钥对，私钥不会离开设备。</p></article>
+          <article class="card mini"><span>02</span><h3>Worker 注册设备</h3><p>你部署的 Cloudflare Worker 转发注册请求到 Cloudflare API，并把 AES/设备令牌返回给页面。</p></article>
+          <article class="card mini"><span>03</span><h3>多格式输出</h3><p>本地组装 AWG/WireGuard .conf、MASQUE Clash YAML，并用 Worker 生成可直接导入的订阅地址。</p></article>
         </div>
       </section>
 
       <section class="wrap section" id="faq">
         <div class="section-head"><div><p class="kicker">FAQ</p><h2>常见问题</h2></div></div>
         <div class="faq">
-          <details><summary>为什么一键注册可能失败？</summary><p>原注册服务只允许授权域名（如 masque.pages.dev）来源访问，GitHub Pages 域名不在白名单。此时请到原站获取账号 JSON 后粘贴到本页，或在“注册接口”中填入你自己的兼容 Worker。</p></details>
-          <details><summary>订阅链接能直接在 Clash 里用吗？</summary><p>本地订阅链接需要在本页打开后才能解码出 YAML。若要在 Clash 中作为远程订阅使用，请填写一个实现了 <code>/api/sub</code> 的订阅托管 API，页面会上传 YAML 并返回真实订阅地址。</p></details>
-          <details><summary>私钥会上传吗？</summary><p>转换过程完全在本地进行。只有当你主动填写订阅托管 API 时，YAML 才会被发送到该地址；本地订阅链接本身包含私钥，请谨慎分享。</p></details>
-          <details><summary>与原站的关系？</summary><p>本页参考 <a href="https://m2c.pages.dev/" target="_blank" rel="noopener">m2c.pages.dev</a> 的选项与配置结构独立实现，与其作者无关联。</p></details>
+          <details><summary>为什么一定要部署 Worker？</summary><p>Cloudflare 注册接口不允许浏览器跨域调用，m2c 等站点也依赖自己的服务端。Worker 免费且只需部署一次，仓库内已包含完整代码与部署按钮。</p></details>
+          <details><summary>AWG 档位会改变 WARP 服务端吗？</summary><p>不会。Cloudflare 始终是标准 WireGuard peer；AWG 1.5/2.0/3.x 参数只写在客户端配置的 Interface 段，用于握手伪装与填充。</p></details>
+          <details><summary>订阅链接格式？</summary><p>配置 Worker 后，订阅地址为 <code>https://你的Worker/sub/&lt;token&gt;</code>，可直接填入 Clash/Mihomo。无 Worker 时退化为本地 <code>#sub=</code> 链接，打开本页可恢复配置。</p></details>
+          <details><summary>合规说明</summary><p>非官方项目，与 Cloudflare、Amnezia、m2c 作者无关联。使用 WARP 请遵守 Cloudflare 条款与所在地区法律。</p></details>
         </div>
       </section>
     </main>
-
-    <footer class="footer"><div class="wrap"><strong>MASQUE To Clash</strong><span>静态实现 · 本地转换 · 非官方项目</span><span>遵守 Cloudflare 服务条款与当地法律</span></div></footer>
+    <footer class="footer"><div class="wrap"><strong>MASQUE To Clash · WARP Config Generator</strong><span>静态前端 + 自部署 Worker 中继</span><span>非官方项目</span></div></footer>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="assets/template.js" defer></script>
     <script src="assets/app.js" defer></script>
