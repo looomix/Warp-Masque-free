@@ -4,14 +4,14 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
   const WARP_PEER = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=";
-  const bytesToB64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
-  const pemBody = (value) => String(value || "").replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/g, "").replace(/\s/g, "");
+  const SUB_URL = "https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml";
+  const IMPORT_URL = `clash://install-config?url=${encodeURIComponent(SUB_URL)}`;
   const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
   const hexText = (text) => Array.from(new TextEncoder().encode(text)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const pemBody = (value) => String(value || "").replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/g, "").replace(/\s/g, "");
   const b64urlEncode = (text) => {
-    const bytes = new TextEncoder().encode(text);
     let bin = "";
-    bytes.forEach((b) => (bin += String.fromCharCode(b)));
+    new TextEncoder().encode(text).forEach((b) => (bin += String.fromCharCode(b)));
     return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
   };
   const b64urlDecode = (value) => {
@@ -21,58 +21,20 @@
     return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
   };
 
-  const state = { wg: null, masque: null, outputs: { conf: "", yaml: "", sub: "" }, tab: "conf" };
+  const state = { account: null, outputs: { conf: "", yaml: "", sub: "" }, tab: "yaml" };
 
   function toast(message) {
     const el = $("#toast");
     el.textContent = message;
     el.classList.add("show");
     clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => el.classList.remove("show"), 5000);
+    toast.timer = setTimeout(() => el.classList.remove("show"), 4500);
   }
 
   function status(message, error = false) {
     const el = $("#accountStatus");
     el.textContent = message;
     el.style.color = error ? "#fda4af" : "";
-  }
-
-  function workerBase() {
-    return $("#workerUrl").value.trim().replace(/\/$/, "");
-  }
-
-  async function api(path, body) {
-    const base = workerBase();
-    if (!base) throw new Error("请先填写 Worker 地址，或点击“一键部署中继 Worker”");
-    const response = await fetch(`${base}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.message) throw new Error(data.message || `HTTP ${response.status}`);
-    return data;
-  }
-
-  async function genX25519() {
-    const pair = await crypto.subtle.generateKey({ name: "X25519" }, true, ["deriveBits"]);
-    return {
-      privateKey: bytesToB64(await crypto.subtle.exportKey("raw", pair.privateKey)),
-      publicKey: bytesToB64(await crypto.subtle.exportKey("raw", pair.publicKey)),
-    };
-  }
-
-  async function genP256() {
-    const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
-    return {
-      privateKey: bytesToB64(await crypto.subtle.exportKey("pkcs8", pair.privateKey)),
-      publicKey: bytesToB64(await crypto.subtle.exportKey("spki", pair.publicKey)),
-    };
-  }
-
-  function serialNumber() {
-    const bytes = crypto.getRandomValues(new Uint8Array(8));
-    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
   }
 
   function i1Payload() {
@@ -86,23 +48,19 @@
     let jc = rand(3, 24);
     let jmin = rand(64, 700);
     let jmax = rand(Math.max(jmin + 64, 128), 1024);
-    let s = [0, 0, 0, 0];
-    let h = ["1", "2", "3", "4"];
+    const lines = [];
     if (mode === "legacy") {
       jc = rand(3, 150);
       jmin = rand(20, 60);
       jmax = rand(700, 1000);
-      s = [0, 0];
-    }
-    const lines = [];
-    if (mode === "legacy") {
-      lines.push(`S1 = ${s[0]}`, `S2 = ${s[1]}`, `Jc = ${jc}`, `Jmin = ${jmin}`, `Jmax = ${jmax}`);
+      lines.push(`S1 = 0`, `S2 = 0`);
     } else {
       lines.push(`Jc = ${jc}`, `Jmin = ${jmin}`, `Jmax = ${jmax}`);
-      s.forEach((v, i) => lines.push(`S${i + 1} = ${v}`));
+      [0, 0, 0, 0].forEach((v, i) => lines.push(`S${i + 1} = ${v}`));
       lines.push(`I1 = ${i1Payload()}`);
     }
-    h.forEach((v, i) => lines.push(`H${i + 1} = ${v}`));
+    if (mode === "legacy") lines.push(`Jc = ${jc}`, `Jmin = ${jmin}`, `Jmax = ${jmax}`);
+    ["1", "2", "3", "4"].forEach((v, i) => lines.push(`H${i + 1} = ${v}`));
     if (mode === "awg3" || mode === "awg31") {
       lines.push(
         "ContentPaddingAddition = 10-100",
@@ -117,29 +75,24 @@
   }
 
   function buildConf() {
-    if (!state.wg) return "";
+    if (!state.account || !state.account.wgPrivate) return "当前账号没有 X25519 WireGuard 私钥，无法生成 .conf。请使用 usque/wgcf 生成的 WARP 账号，或通过 Actions 生成 MASQUE 订阅。";
     const mode = $("#profile").value;
-    const addresses = state.wg.addresses || {};
-    const ipv4 = addresses.v4 || state.wg.ipv4 || "172.16.0.2";
-    const ipv6 = addresses.v6 || state.wg.ipv6 || "";
-    const endpoint = state.wg.endpoint || "engage.cloudflareclient.com";
+    const a = state.account;
     const lines = [
       "[Interface]",
-      `PrivateKey = ${state.wg.privateKey}`,
-      `Address = ${$("#ipv6").checked && ipv6 ? `${ipv4}, ${ipv6}` : ipv4}`,
+      `PrivateKey = ${a.wgPrivate}`,
+      `Address = ${$("#ipv6").checked && a.ipv6 ? `${a.ipv4}, ${a.ipv6}` : a.ipv4}`,
       "DNS = 1.1.1.1, 1.0.0.1, 2606:4700:4700::1111, 2606:4700:4700::1001",
       "MTU = 1280",
-    ];
-    lines.push(...awgFields(mode));
-    lines.push(
+      ...awgFields(mode),
       "",
       "[Peer]",
       `PublicKey = ${WARP_PEER}`,
-      `AllowedIPs = ${$("#ipv6").checked && ipv6 ? "0.0.0.0/0, ::/0" : "0.0.0.0/0"}`,
-      `Endpoint = ${endpoint}:${$("#wgPort").value}`,
+      `AllowedIPs = ${$("#ipv6").checked && a.ipv6 ? "0.0.0.0/0, ::/0" : "0.0.0.0/0"}`,
+      `Endpoint = ${a.endpoint}:${$("#wgPort").value}`,
       "PersistentKeepalive = 25",
-      ""
-    );
+      "",
+    ];
     return lines.join("\n");
   }
 
@@ -148,16 +101,14 @@
     const mode = $("#endpointMode").value;
     const ports = $("#portMode").value === "random" ? [443, 500, 1701, 4500, 8095] : [Number($("#portMode").value)];
     let servers;
-    if (mode === "v6") servers = wantV6 ? ["2606:4700:103::2", "2606:4700:104::2"] : [];
+    if (mode === "v6") servers = wantV6 ? ["2606:4700:103::1", "2606:4700:103::2"] : [];
     else if (mode === "v4") servers = ["162.159.198.2", "162.159.199.2"];
     else {
       servers = ["162.159.198.2", "162.159.199.2"];
       if (wantV6) servers.push("2606:4700:103::2", "2606:4700:104::2");
     }
     if (!servers.length) throw new Error("请启用 IPv6 或更换 Endpoint 范围");
-    const nodes = [];
-    servers.forEach((server) => ports.forEach((port) => nodes.push({ server, port })));
-    return nodes;
+    return servers.flatMap((server) => ports.map((port) => ({ server, port })));
   }
 
   function rulesBlock() {
@@ -165,30 +116,28 @@
     const base = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite";
     const sets = ["private", "cn", "google", "youtube", "telegram", "github", "microsoft", "apple"];
     const providers = sets.map((n) => `  ${n}: {type: http, behavior: domain, format: mrs, url: "${base}/${n}.mrs", interval: 86400}`).join("\n");
-    const rules = sets.map((n) => (n === "private" || n === "cn" ? `  - RULE-SET,${n},DIRECT` : `  - RULE-SET,${n},节点选择`)).join("\n");
-    return `\nrule-providers:\n${providers}\n\nrules:\n${rules}\n  - MATCH,FINAL\n`;
+    const rules = sets.map((n) => `  - RULE-SET,${n},${n === "private" || n === "cn" ? "DIRECT" : "节点选择"}`).join("\n");
+    return `\nrule-providers:\n${providers}\n\nrules:\n${rules}\n  - MATCH,节点选择\n`;
   }
 
   function buildYaml() {
-    if (!state.masque) return "";
+    const a = state.account;
+    if (!a || !a.privateKey || !a.publicKey) return "当前账号缺少 MASQUE private_key 或 endpoint_pub_key，无法生成 Clash YAML。";
     const nodes = endpointNodes();
     const network = $("#network").value;
     const networkLine = network === "h2" ? "\n    network: h2" : network === "h3-l4proxy" ? "\n    network: h3-l4proxy" : "";
-    const ipv4 = state.masque.addresses.v4 || state.masque.ipv4 || "172.16.0.2";
-    const ipv6 = state.masque.addresses.v6 || state.masque.ipv6 || "";
-    const ipv6Line = $("#ipv6").checked && ipv6 ? `\n    ipv6: ${ipv6}` : "";
-    const publicKey = pemBody(state.masque.publicKey);
+    const ipv6Line = $("#ipv6").checked && a.ipv6 ? `\n    ipv6: ${a.ipv6}` : "";
     const proxies = nodes
       .map((n) => {
-        const name = `官方 | ${n.server} | ${n.port} | WARP-MASQUE`;
-        return `  - name: "${name}"\n    type: masque\n    server: ${n.server}\n    port: ${n.port}\n    private-key: ${state.masque.privateKey}\n    public-key: ${publicKey}\n    ip: ${ipv4}${ipv6Line}\n    uri: https://cloudflareaccess.com\n    mtu: 1280\n    udp: ${$("#udp").checked}\n    remote-dns-resolve: true\n    congestion-controller: ${$("#cc").value}\n    sni: ${$("#sni").value.trim() || "www.cloudflareaccess.com"}${networkLine}`;
+        const name = `WARP | ${n.server} | ${n.port}`;
+        return `  - name: "${name}"\n    type: masque\n    server: ${n.server}\n    port: ${n.port}\n    private-key: ${a.privateKey}\n    public-key: ${pemBody(a.publicKey)}\n    ip: ${a.ipv4}${ipv6Line}\n    uri: https://cloudflareaccess.com\n    mtu: 1280\n    udp: ${$("#udp").checked}\n    remote-dns-resolve: true\n    congestion-controller: ${$("#cc").value}\n    sni: ${$("#sni").value.trim() || "www.cloudflareaccess.com"}${networkLine}`;
       })
       .join("\n\n");
-    const names = nodes.map((n) => `"官方 | ${n.server} | ${n.port} | WARP-MASQUE"`).join(", ");
+    const names = nodes.map((n) => `"WARP | ${n.server} | ${n.port}"`).join(", ");
 
     return window.MASQUE_TEMPLATE
       .replace("__TIME__", new Date().toLocaleString("zh-CN"))
-      .replace("__VERSION__", "2.0.0")
+      .replace("__VERSION__", "3.0.0-actions")
       .replace(/__IPV6__/g, $("#ipv6").checked ? "true" : "false")
       .replace("__DNS_IPV6__", $("#ipv6").checked ? "true" : "false")
       .replace("__DNS_MODE__", "fake-ip")
@@ -201,152 +150,56 @@
       .replace("__RULES_BLOCK__", rulesBlock());
   }
 
-  function localSub(yaml) {
-    return `${location.origin}${location.pathname}#sub=${b64urlEncode(yaml)}`;
-  }
-
-  async function remoteSub(yaml) {
-    if (!workerBase()) return null;
-    try {
-      const data = await api("/api/sub", { format: "clash", content: yaml, tier: "24h" });
-      return data.url || null;
-    } catch {
-      return null;
-    }
+  function showTab(tab) {
+    state.tab = tab;
+    $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
+    $("#output").textContent = state.outputs[tab] || "尚未生成，请先粘贴账号 JSON。";
+    $("#copyOutput").disabled = !state.outputs[tab];
+    $("#downloadOutput").disabled = tab === "sub";
   }
 
   function render() {
     state.outputs.conf = buildConf();
     state.outputs.yaml = buildYaml();
-    state.outputs.sub = state.outputs.yaml ? `${localSub(state.outputs.yaml)}\n\n（远程订阅地址在 Worker 可用时自动生成）` : "";
+    state.outputs.sub = [
+      "公开订阅地址（GitHub Pages / Actions）：",
+      SUB_URL,
+      "",
+      "Clash 导入链接：",
+      IMPORT_URL,
+      "",
+      "本地账号临时链接（含私钥，打开本页即可恢复）：",
+      `${location.origin}${location.pathname}#sub=${b64urlEncode(state.outputs.yaml)}`,
+    ].join("\n");
     $("#result").hidden = false;
-    $("#resultMeta").textContent = `${$("#profile").value.toUpperCase()} · ${$("#network").value.toUpperCase()} · 本地组装`;
+    $("#resultMeta").textContent = `${$("#profile").value.toUpperCase()} · ${$("#network").value.toUpperCase()} · 本地转换`;
     showTab(state.tab);
   }
 
-  function showTab(tab) {
-    state.tab = tab;
-    $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
-    const text = state.outputs[tab] || "";
-    $("#output").textContent = text || "尚未生成，请先注册或粘贴账号。";
-    $("#copyOutput").disabled = !text;
-    $("#downloadOutput").disabled = !text || tab === "sub";
-  }
-
-  async function oneClick() {
-    try {
-      status("正在生成 X25519 密钥并注册 WARP…");
-      const wgKey = await genX25519();
-      const registered = await api("/api/warp/register", {
-        key: wgKey.publicKey,
-        serial_number: serialNumber(),
-        tos: new Date().toISOString(),
-      });
-      const peer = (registered.config && registered.config.peers && registered.config.peers[0]) || {};
-      const addresses = (registered.config && registered.config.interface && registered.config.interface.addresses) || {};
-      state.wg = {
-        privateKey: wgKey.privateKey,
-        addresses,
-        ipv4: addresses.v4,
-        ipv6: addresses.v6,
-        endpoint: (peer.endpoint && peer.endpoint.host ? peer.endpoint.host.split(":")[0] : "engage.cloudflareclient.com"),
-      };
-
-      status("正在注册 MASQUE 设备…");
-      const masqueKey = await genX25519();
-      const masqueReg = await api("/api/warp/register", {
-        key: masqueKey.publicKey,
-        serial_number: serialNumber(),
-        tos: new Date().toISOString(),
-      });
-      const p256 = await genP256();
-      const enrolled = await api("/api/warp/enroll", {
-        id: masqueReg.id,
-        token: masqueReg.token,
-        public_key: p256.publicKey,
-        name: "WARP-MASQUE",
-      });
-      const mPeer = (enrolled.config && enrolled.config.peers && enrolled.config.peers[0]) || {};
-      const mAddresses = (enrolled.config && enrolled.config.interface && enrolled.config.interface.addresses) || {};
-      state.masque = {
-        privateKey: p256.privateKey,
-        publicKey: mPeer.public_key || p256.publicKey,
-        addresses: mAddresses,
-        ipv4: mAddresses.v4,
-        ipv6: mAddresses.v6,
-      };
-
-      render();
-      const remote = await remoteSub(state.outputs.yaml);
-      if (remote) state.outputs.sub = `${remote}\n\n本地备用：\n${localSub(state.outputs.yaml)}`;
-      if (state.tab === "sub") showTab("sub");
-      status("注册成功，配置已生成。请妥善保存本页面输出的私钥。");
-      toast("WARP 注册成功，配置已生成");
-    } catch (error) {
-      status(`失败：${error.message}`, true);
-      toast(error.message);
-    }
-  }
-
-  function parseManualAccount() {
+  function parseAccount() {
     const raw = $("#accountText").value.trim();
-    if (!raw) throw new Error("没有账号 JSON，请先一键注册或粘贴账号");
+    if (!raw) throw new Error("请先粘贴账号 JSON，或使用 Actions 生成的公开订阅");
     const root = JSON.parse(raw);
     const account = root && root.success && root.content ? root.content : root;
-    if (!account.private_key && !account.privateKey) throw new Error("账号缺少 private_key");
-    const priv = account.private_key || account.privateKey;
-    const addresses = {
-      v4: account.ipv4 || account.address || "172.16.0.2",
-      v6: account.ipv6 || "",
-    };
-    state.wg = {
-      privateKey: pemBody(priv).length === 43 ? priv : pemBody(priv),
-      addresses,
-      ipv4: addresses.v4,
-      ipv6: addresses.v6,
+    const privateKey = account.private_key || account.privateKey || "";
+    const publicKey = account.endpoint_pub_key || account.public_key || "";
+    const ipv4 = account.ipv4 || account.address || "172.16.0.2";
+    const ipv6 = account.ipv6 || "";
+    if (!privateKey) throw new Error("账号缺少 private_key");
+    state.account = {
+      privateKey,
+      publicKey,
+      wgPrivate: pemBody(privateKey).length === 43 ? privateKey : "",
+      ipv4,
+      ipv6,
       endpoint: account.endpoint_v4 || account.endpoint || "engage.cloudflareclient.com",
     };
-    state.masque = {
-      privateKey: priv,
-      publicKey: account.endpoint_pub_key || account.public_key || "",
-      addresses,
-      ipv4: addresses.v4,
-      ipv6: addresses.v6,
-    };
   }
 
-  async function generate() {
-    try {
-      parseManualAccount();
-      render();
-      const remote = await remoteSub(state.outputs.yaml);
-      if (remote) state.outputs.sub = `${remote}\n\n本地备用：\n${localSub(state.outputs.yaml)}`;
-      if (state.tab === "sub") showTab("sub");
-      toast("已从账号生成配置");
-    } catch (error) {
-      toast(error.message);
-    }
-  }
-
-  async function checkWorker() {
-    try {
-      const base = workerBase();
-      if (!base) throw new Error("请先填写 Worker 地址");
-      const response = await fetch(`${base}/api/health`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      status(`中继连接正常：${data.service || "ok"}`);
-      toast("Worker 连接正常");
-    } catch (error) {
-      status(`中继连接失败：${error.message}`, true);
-      toast(`中继连接失败：${error.message}`);
-    }
-  }
-
-  async function copyText(text) {
+  async function copyText(text, message = "已复制") {
     try {
       await navigator.clipboard.writeText(text);
-      toast("已复制");
+      toast(message);
     } catch {
       const area = document.createElement("textarea");
       area.value = text;
@@ -354,19 +207,28 @@
       area.select();
       document.execCommand("copy");
       area.remove();
-      toast("已复制");
+      toast(message);
     }
   }
 
   function bindEvents() {
-    $("#oneClick").addEventListener("click", oneClick);
-    $("#generate").addEventListener("click", generate);
-    $("#checkWorker").addEventListener("click", checkWorker);
+    $("#generate").addEventListener("click", () => {
+      try {
+        parseAccount();
+        render();
+        status("已从账号 JSON 本地生成配置。");
+        toast("配置已生成");
+      } catch (error) {
+        toast(error.message);
+      }
+    });
+    $("#copyRemote").addEventListener("click", () => copyText(SUB_URL, "订阅地址已复制"));
+    $("#copyImport").addEventListener("click", () => copyText(IMPORT_URL, "导入链接已复制"));
     $("#copyOutput").addEventListener("click", () => copyText(state.outputs[state.tab] || ""));
     $("#downloadOutput").addEventListener("click", () => {
       const text = state.outputs[state.tab];
-      if (!text) return;
-      const ext = state.tab === "yaml" ? "yaml" : state.tab === "conf" ? "conf" : "txt";
+      if (!text || state.tab === "sub") return;
+      const ext = state.tab === "yaml" ? "yaml" : "conf";
       const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -384,7 +246,7 @@
           ipv4: "172.16.0.2",
           ipv6: "2606:4700:110::1",
           endpoint_v4: "engage.cloudflareclient.com",
-          note: "示例结构，不能连接",
+          note: "示例结构，仅用于预览，不能连接",
         },
         null,
         2
