@@ -1,15 +1,15 @@
-# Cloudflare WARP 配置生成器（MASQUE To Clash）
+# Cloudflare WARP 配置生成器（Warp-Masque free）
 
 参照 [byJoey/warp-masque-actions](https://github.com/byJoey/warp-masque-actions) 的原理，用 **GitHub Actions** 在服务端注册 Cloudflare WARP 设备并生成 Mihomo/Clash 的 MASQUE 订阅；站点本身是纯静态 GitHub Pages，不需要 Cloudflare Worker，也不需要自己的服务器。
 
-在线站点：<https://looomix.github.io/MASQUE-To-Clash/>
-仓库：<https://github.com/looomix/MASQUE-To-Clash>
+在线站点：<https://looomix.github.io/Warp-Masque-free/>
+仓库：<https://github.com/looomix/Warp-Masque-free>
 
 ## 使用方式
 
 ### 云端一键生成（推荐）
 
-1. 打开 [Actions 工作流](https://github.com/looomix/MASQUE-To-Clash/actions/workflows/generate-warp.yml)。
+1. 打开 [Actions 工作流](https://github.com/looomix/Warp-Masque-free/actions/workflows/generate-warp.yml)。
 2. 点击 **Run workflow**，可选择设备名、是否提交配置、artifact 保留天数。
 3. 工作流会：
    - 下载 `usque` 并注册一台 WARP/MASQUE 设备；
@@ -17,11 +17,11 @@
    - 把 `configs/warp-masque.yaml` 和 `configs/usque-config.json` 提交回仓库（触发 Pages 更新）；
    - 上传 `warp-masque.yaml`、`warp-masque-shadowrocket.txt` 和原始 `usque-config.json` 作为 artifact。
 4. 订阅地址：  
-   <https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml>  
+   <https://looomix.github.io/Warp-Masque-free/configs/warp-masque.yaml>  
    镜像订阅地址（gh-proxy）：  
-   <https://gh-proxy.com/https://raw.githubusercontent.com/looomix/MASQUE-To-Clash/main/configs/warp-masque.yaml>  
+   <https://gh-proxy.com/https://raw.githubusercontent.com/looomix/Warp-Masque-free/main/configs/warp-masque.yaml>  
    Clash 导入链接（使用镜像）：  
-   `clash://install-config?url=https%3A%2F%2Fgh-proxy.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Flooomix%2FMASQUE-To-Clash%2Fmain%2Fconfigs%2Fwarp-masque.yaml`
+   `clash://install-config?url=https%3A%2F%2Fgh-proxy.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Flooomix%2FWarp-Masque-free%2Fmain%2Fconfigs%2Fwarp-masque.yaml`
 
 页面打开时会自动读取 `configs/usque-config.json` 填入账号输入框并生成预览，无需手动复制。
 
