@@ -1,18 +1,17 @@
-AmneziaWG · Config Lab (static edition)
+MASQUE To Clash (static edition)
 
-This project is an independent, browser-only reimplementation inspired by
-the configuration format and behaviour of:
+An independent, browser-only converter inspired by the option set and
+Clash/Mihomo configuration structure of:
 
-  HereIamGosu/amnezia-config-gen
-  https://github.com/HereIamGosu/amnezia-config-gen
-  Copyright (C) 2026 HereIamGosu
-  Licensed under the GNU Affero General Public License v3.0 only.
+  https://m2c.pages.dev/
+  https://masque.pages.dev/
+  https://github.com/KJGX66F/usque-custom-pro
 
-The original server-side project requires a backend to register Cloudflare
-WARP devices. This GitHub Pages edition has no backend; it asks the user to
-supply an already registered WARP private key, or to generate a local key for
-a self-hosted AmneziaWG/WireGuard server. It also omits vpn:// link encoding
-and live IP preset feeds.
+No source code was copied from those projects. The registration API used by
+the original site enforces a referrer whitelist, so this GitHub Pages edition
+cannot always register an account directly; it accepts an already generated
+MASQUE account JSON and can use a user-supplied compatible registration relay.
+Subscriptions are encoded locally in the URL fragment unless an optional
+/api/sub compatible hosting API is configured.
 
-This derivative work is distributed under the same license, AGPL-3.0-only.
-See LICENSE for the full text.
+Distributed under AGPL-3.0-only. See LICENSE for the full text.
