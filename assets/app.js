@@ -5,7 +5,8 @@
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
   const WARP_PEER = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=";
   const SUB_URL = "https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml";
-  const IMPORT_URL = `clash://install-config?url=${encodeURIComponent(SUB_URL)}`;
+  const MIRROR_URL = "https://gh-proxy.com/https://raw.githubusercontent.com/looomix/MASQUE-To-Clash/main/configs/warp-masque.yaml";
+  const IMPORT_URL = `clash://install-config?url=${encodeURIComponent(MIRROR_URL)}`;
   const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
   const hexText = (text) => Array.from(new TextEncoder().encode(text)).map((b) => b.toString(16).padStart(2, "0")).join("");
   const pemBody = (value) => String(value || "").replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/g, "").replace(/\s/g, "");
@@ -162,10 +163,13 @@
     state.outputs.conf = buildConf();
     state.outputs.yaml = buildYaml();
     state.outputs.sub = [
-      "公开订阅地址（GitHub Pages / Actions）：",
+      "公开订阅地址（GitHub Pages）：",
       SUB_URL,
       "",
-      "Clash 导入链接：",
+      "镜像订阅地址（gh-proxy）：",
+      MIRROR_URL,
+      "",
+      "Clash 导入链接（镜像）：",
       IMPORT_URL,
       "",
       "本地账号临时链接（含私钥，打开本页即可恢复）：",
@@ -223,6 +227,7 @@
       }
     });
     $("#copyRemote").addEventListener("click", () => copyText(SUB_URL, "订阅地址已复制"));
+    $("#copyMirror").addEventListener("click", () => copyText(MIRROR_URL, "镜像地址已复制"));
     $("#copyImport").addEventListener("click", () => copyText(IMPORT_URL, "导入链接已复制"));
     $("#copyOutput").addEventListener("click", () => copyText(state.outputs[state.tab] || ""));
     $("#downloadOutput").addEventListener("click", () => {
@@ -270,6 +275,23 @@
     }
   }
 
+  async function autoLoadGeneratedAccount() {
+    try {
+      const response = await fetch(`configs/usque-config.json?t=${Date.now()}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const account = await response.json();
+      $("#accountText").value = JSON.stringify(account, null, 2);
+      parseAccount();
+      render();
+      status("已自动载入 Actions 生成的账号并更新输出。可点击“重新生成输出”应用左侧选项。");
+    } catch {
+      if (!$("#accountText").value.trim()) {
+        status("尚未检测到 Actions 生成的账号 JSON。可运行工作流或手动粘贴账号。");
+      }
+    }
+  }
+
   bindEvents();
   restoreHash();
+  autoLoadGeneratedAccount();
 })();
