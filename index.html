@@ -35,10 +35,11 @@
             <a class="btn btn-primary" href="https://github.com/looomix/MASQUE-To-Clash/actions/workflows/generate-warp.yml" target="_blank" rel="noopener">在 Actions 中一键生成</a>
             <button type="button" class="btn btn-mini" id="loadDemo">填入示例账号</button>
           </div>
-          <div class="field"><label>公开订阅地址（Actions 生成后可用，可直接导入 Clash / Mihomo）</label><div class="input-action"><input id="subRemote" type="text" value="https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyRemote">复制</button></div></div>
-          <div class="field"><label>Clash 导入链接</label><div class="input-action"><input id="clashImport" type="text" value="clash://install-config?url=https%3A%2F%2Flooomix.github.io%2FMASQUE-To-Clash%2Fconfigs%2Fwarp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyImport">复制</button></div></div>
-          <p class="hint" id="accountStatus">Actions 生成完成后，订阅地址即可使用。配置含私钥，公开仓库中请勿转发该订阅。</p>
-          <div class="field"><label for="accountText">或使用本地转换：粘贴已有 WARP / MASQUE 账号 JSON（usque config.json / m2c JSON）</label><textarea id="accountText" rows="5" spellcheck="false" placeholder='{ "private_key": "...", "endpoint_pub_key": "...", "ipv4": "172.16.0.2" }'></textarea></div>
+          <div class="field"><label>公开订阅地址（GitHub Pages）</label><div class="input-action"><input id="subRemote" type="text" value="https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyRemote">复制</button></div></div>
+          <div class="field"><label>镜像订阅地址（gh-proxy，便于网络受限环境拉取）</label><div class="input-action"><input id="subMirror" type="text" value="https://gh-proxy.com/https://raw.githubusercontent.com/looomix/MASQUE-To-Clash/main/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyMirror">复制</button></div></div>
+          <div class="field"><label>Clash 导入链接（使用镜像）</label><div class="input-action"><input id="clashImport" type="text" value="clash://install-config?url=https%3A%2F%2Fgh-proxy.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Flooomix%2FMASQUE-To-Clash%2Fmain%2Fconfigs%2Fwarp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyImport">复制</button></div></div>
+          <p class="hint" id="accountStatus">Actions 生成完成后，账号 JSON 会自动填入下方输入框并生成预览。配置含私钥，公开仓库中请勿转发该订阅。</p>
+          <div class="field"><label for="accountText">账号 JSON（Actions 自动生成的 usque config.json；也可手动粘贴其他 WARP / MASQUE 账号）</label><textarea id="accountText" rows="5" spellcheck="false" placeholder='{ "private_key": "...", "endpoint_pub_key": "...", "ipv4": "172.16.0.2" }'></textarea></div>
         </div>
 
         <div class="card step">
