@@ -4,8 +4,8 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
   const WARP_PEER = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=";
-  const SUB_URL = "https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml";
-  const MIRROR_URL = "https://gh-proxy.com/https://raw.githubusercontent.com/looomix/MASQUE-To-Clash/main/configs/warp-masque.yaml";
+  const SUB_URL = "https://looomix.github.io/Warp-Masque-free/configs/warp-masque.yaml";
+  const MIRROR_URL = "https://gh-proxy.com/https://raw.githubusercontent.com/looomix/Warp-Masque-free/main/configs/warp-masque.yaml";
   const IMPORT_URL = `clash://install-config?url=${encodeURIComponent(MIRROR_URL)}`;
   const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
   const hexText = (text) => Array.from(new TextEncoder().encode(text)).map((b) => b.toString(16).padStart(2, "0")).join("");
