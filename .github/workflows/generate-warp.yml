@@ -1,0 +1,85 @@
+name: 生成 WARP MASQUE 配置
+
+on:
+  workflow_dispatch:
+    inputs:
+      device_name:
+        description: 设备名（WARP 后台显示用）
+        required: false
+        default: gh-actions
+      commit:
+        description: 是否把 YAML 提交到仓库供 GitHub Pages 订阅使用
+        type: boolean
+        required: false
+        default: true
+      retention_days:
+        description: artifact 保留天数
+        required: false
+        default: '7'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 下载 usque
+        shell: bash
+        run: |
+          set -euo pipefail
+          VER=$(curl -sL https://api.github.com/repos/Diniboy1123/usque/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          echo "usque 版本 $VER"
+          curl -sL -o usque.zip "https://github.com/Diniboy1123/usque/releases/download/v${VER}/usque_${VER}_linux_amd64.zip"
+          unzip -oq usque.zip
+          chmod +x usque
+
+      - name: 注册 WARP 设备
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./usque register -a -n "${{ inputs.device_name || 'gh-actions' }}"
+          test -s config.json
+          python3 - <<'PY'
+          import json
+          c = json.load(open('config.json'))
+          print('endpoint_v4 =', c.get('endpoint_v4'))
+          print('ipv4 =', c.get('ipv4'))
+          print('ipv6 =', c.get('ipv6'))
+          PY
+
+      - name: 生成 Clash YAML 与 Shadowrocket 链接
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/generate.py config.json dist
+          mkdir -p configs
+          cp dist/warp-masque.yaml configs/warp-masque.yaml
+          cp config.json dist/usque-config.json
+          test -s dist/warp-masque.yaml
+          test -s dist/warp-masque-shadowrocket.txt
+
+      - name: 提交订阅配置供 Pages 托管
+        if: ${{ inputs.commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add configs/warp-masque.yaml
+          if git diff --cached --quiet; then
+            echo "配置无变化，无需提交"
+          else
+            git commit -m "chore: refresh WARP MASQUE subscription [skip ci]"
+            git push
+          fi
+
+      - name: 上传 artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: warp-masque-config
+          path: dist/
+          retention-days: ${{ inputs.retention_days || 7 }}
+          if-no-files-found: error
