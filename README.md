@@ -1,50 +1,53 @@
-# AmneziaWG · Config Lab（静态版）
+# MASQUE To Clash
 
-一个部署在 GitHub Pages 上的纯前端 AmneziaWG / Cloudflare WARP 配置生成器，参照 [awgconfig.com](https://awgconfig.com/) 的配置结构实现。
+把 Cloudflare WARP **MASQUE** 账号转换成 Clash / Mihomo（Clash.Meta）`YAML` 配置的纯前端工具，参考 [m2c.pages.dev](https://m2c.pages.dev/) 的选项与配置结构实现。
 
-在线地址：<https://looomix.github.io/AmneziaWG/>
+在线地址：<https://looomix.github.io/MASQUE-To-Clash/>
 
 ## 功能
 
-- AWG 1.5 / 2.0 / 3.0 / 3.1 四种档位，生成结构与原站一致（Jc/Jmin/Jmax、S1–S4、H1–H4、I1 CPS、AWG 3.x 时序区间等）。
-- 全隧道 / 分流路由、DNS 预设、Endpoint 与 UDP 端口、IPv6、路由器 / 移动设备模式、批量生成 1–3 份。
-- 高级参数：CPS 协议、I1 十六进制链、Jitter 覆盖、额外 I2–I5。
-- 安全预览（隐藏私钥）、复制、下载 `.conf`、本机历史记录（最多 20 条）。
-- 环境自检：JavaScript、X25519、localStorage、网络状态。
+- 一键注册并生成（调用可配置的注册接口），失败时自动提示粘贴原站账号 JSON。
+- 支持 H3 / H2 / H3-L4、IPv4 / IPv6 / 全部端点、固定或随机端口（500/4500/8095/443）。
+- 生成 `type: masque` 节点，包含私钥、公钥、IP、MTU、UDP、SNI、拥塞控制等字段。
+- 内置 DNS / Fake-IP、策略组（自动端点、手动端点、故障转移、负载均衡、国内直连）与规则提供器。
+- 下载 YAML、复制 YAML、生成**本地订阅链接**（`#sub=` base64url 编码，打开本页即可恢复）。
+- 可选订阅托管 API：填写实现了 `/api/sub` 契约的 Worker 后，可生成真正的远程订阅地址。
 
-## 与 awgconfig.com 的差异
+## 订阅链接说明
 
-原站通过服务端向 Cloudflare WARP API 注册设备，因此点击一次即可拿到全新密钥。GitHub Pages 只能托管静态文件，浏览器直连 Cloudflare API 会被 CORS 阻止。本站因此采用：
+- **本地订阅链接**：`https://looomix.github.io/MASQUE-To-Clash/#sub=<base64url>`。它把 YAML 编码在 URL 片段里，打开后页面自动解码并显示。方便备份与分享，但不能被 Clash 直接当作远程订阅拉取。
+- **远程订阅地址**：在页面填入订阅托管 API 基址（如 `https://your-worker.workers.dev`），页面会 `POST /api/sub`，请求体为 `{format:"clash", content:<yaml>, tier:"24h"}`，期望返回 `{url:"..."}`。兼容 `usque-custom-pro` 的订阅接口约定。
+- 两种链接都包含私钥，请当作凭据对待。
 
-1. **WARP 模式**：粘贴由官方客户端或 `wgcf` 生成的账户 JSON / `.conf`，读取其中已注册的 `PrivateKey`，再本地组装 AWG 配置。
-2. **自建服务器模式**：用 Web Crypto 的 X25519 在本地生成新私钥，填入服务端公钥、地址与 Endpoint。
+## 一键注册的已知限制
 
-页面不会发出任何注册请求，也不会上传密钥。`vpn://` 链接需要 AmneziaVPN 的 protobuf 编码器，静态版不提供；请用 `.conf` 导入。内置分流 CIDR 是演示用示例，不是实时 IP 库。
+原站使用的注册服务 `usque-register-server.pages.dev` 有来源域名白名单，`github.io` 不在其中，因此默认的一键注册通常会被拒绝。处理方式：
+
+1. 在 [m2c.pages.dev](https://m2c.pages.dev/) 使用其“一键生成”取得账号 JSON；
+2. 把 JSON 粘贴到本页“MASQUE 账号”输入框，再点击“生成 YAML 与订阅链接”；
+3. 或者部署一个自己的兼容 Worker，并把地址填入“注册接口”。
+
+转换本身完全在浏览器本地完成，不需要服务器。
 
 ## 本地预览
-
-无需构建工具，任意静态服务器即可：
 
 ```bash
 python -m http.server 8000
 # 打开 http://localhost:8000/
 ```
 
-> 直接双击 `index.html` 也能打开，但部分浏览器会限制剪贴板 API。
-
-## 目录结构
+## 目录
 
 ```text
 index.html          页面结构
 assets/style.css    样式
-assets/app.js       配置生成、密钥处理、历史与交互
-LICENSE             AGPL-3.0（与原项目保持一致）
-NOTICE              出处与差异说明
-.nojekyll           阻止 Jekyll 处理
+assets/app.js       账号解析、节点/YAML 生成、订阅链接编码
+assets/template.js  YAML 模板
+LICENSE             AGPL-3.0
+NOTICE              出处说明
+.nojekyll           GitHub Pages 标记
 ```
 
 ## 致谢与许可
 
-配置字段与参数范围参考了 [HereIamGosu/amnezia-config-gen](https://github.com/HereIamGosu/amnezia-config-gen)（AGPL-3.0）。本站是独立编写的静态实现，保留相同许可证并附 [NOTICE](NOTICE)。
-
-本项目为非官方作品，与 Cloudflare、Amnezia 团队无关联。使用 WARP 需遵守 Cloudflare 的服务条款，并遵守所在地区法律。
+配置结构与选项参考 [m2c.pages.dev](https://m2c.pages.dev/) 及 [MASQUE 导航](https://masque.pages.dev/)，本项目为独立实现，保留 AGPL-3.0 许可。非官方项目，与 Cloudflare、Amnezia 及上述站点作者无关联。使用 MASQUE / WARP 请遵守 Cloudflare 服务条款与所在地区法律。
