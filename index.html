@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Cloudflare WARP 配置生成器 · MASQUE To Clash</title>
+    <title>Cloudflare WARP 配置生成器 · Warp-Masque free</title>
     <meta name="description" content="一键注册 Cloudflare WARP，生成 WireGuard/AmneziaWG .conf、MASQUE Clash YAML 与订阅链接。" />
     <meta name="theme-color" content="#0f172a" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f172a'/%3E%3Cpath d='M14 16h10l16 20V16h10v32H40L24 28v20H14z' fill='%2360a5fa'/%3E%3C/svg%3E" />
@@ -14,7 +14,7 @@
     <header class="topbar"><div class="wrap nav">
       <a class="brand" href="#top"><span class="mark">WARP</span><span>Cloudflare WARP <b>配置生成器</b></span></a>
       <nav><a href="#generator">生成器</a><a href="#how">原理</a><a href="#faq">FAQ</a></nav>
-      <a class="btn btn-ghost" href="https://github.com/looomix/MASQUE-To-Clash" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/looomix/Warp-Masque-free" target="_blank" rel="noopener">GitHub</a>
     </div></header>
 
     <main>
@@ -32,12 +32,12 @@
         <div class="card step">
           <div class="step-head"><span>01</span><div><h3>云端一键生成</h3><p>参照 GitHub Actions 方案：Runner 内运行 usque 注册设备，生成 YAML 并提交到本仓库，GitHub Pages 直接作为订阅源。</p></div></div>
           <div class="account-actions">
-            <a class="btn btn-primary" href="https://github.com/looomix/MASQUE-To-Clash/actions/workflows/generate-warp.yml" target="_blank" rel="noopener">在 Actions 中一键生成</a>
+            <a class="btn btn-primary" href="https://github.com/looomix/Warp-Masque-free/actions/workflows/generate-warp.yml" target="_blank" rel="noopener">在 Actions 中一键生成</a>
             <button type="button" class="btn btn-mini" id="loadDemo">填入示例账号</button>
           </div>
-          <div class="field"><label>公开订阅地址（GitHub Pages）</label><div class="input-action"><input id="subRemote" type="text" value="https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyRemote">复制</button></div></div>
-          <div class="field"><label>镜像订阅地址（gh-proxy，便于网络受限环境拉取）</label><div class="input-action"><input id="subMirror" type="text" value="https://gh-proxy.com/https://raw.githubusercontent.com/looomix/MASQUE-To-Clash/main/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyMirror">复制</button></div></div>
-          <div class="field"><label>Clash 导入链接（使用镜像）</label><div class="input-action"><input id="clashImport" type="text" value="clash://install-config?url=https%3A%2F%2Fgh-proxy.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Flooomix%2FMASQUE-To-Clash%2Fmain%2Fconfigs%2Fwarp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyImport">复制</button></div></div>
+          <div class="field"><label>公开订阅地址（GitHub Pages）</label><div class="input-action"><input id="subRemote" type="text" value="https://looomix.github.io/Warp-Masque-free/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyRemote">复制</button></div></div>
+          <div class="field"><label>镜像订阅地址（gh-proxy，便于网络受限环境拉取）</label><div class="input-action"><input id="subMirror" type="text" value="https://gh-proxy.com/https://raw.githubusercontent.com/looomix/Warp-Masque-free/main/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyMirror">复制</button></div></div>
+          <div class="field"><label>Clash 导入链接（使用镜像）</label><div class="input-action"><input id="clashImport" type="text" value="clash://install-config?url=https%3A%2F%2Fgh-proxy.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Flooomix%2FWarp-Masque-free%2Fmain%2Fconfigs%2Fwarp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyImport">复制</button></div></div>
           <p class="hint" id="accountStatus">Actions 生成完成后，账号 JSON 会自动填入下方输入框并生成预览。配置含私钥，公开仓库中请勿转发该订阅。</p>
           <div class="field"><label for="accountText">账号 JSON（Actions 自动生成的 usque config.json；也可手动粘贴其他 WARP / MASQUE 账号）</label><textarea id="accountText" rows="5" spellcheck="false" placeholder='{ "private_key": "...", "endpoint_pub_key": "...", "ipv4": "172.16.0.2" }'></textarea></div>
         </div>
@@ -86,12 +86,12 @@
         <div class="faq">
           <details><summary>为什么用 GitHub Actions？</summary><p>Cloudflare 注册接口不允许浏览器跨域调用，而 GitHub Actions 的 Runner 是服务端环境，可以直接运行 usque 完成注册。生成的 YAML 提交回仓库后，GitHub Pages 就能作为公开订阅源，不需要 Cloudflare Worker。</p></details>
           <details><summary>AWG 档位会改变 WARP 服务端吗？</summary><p>不会。Cloudflare 始终是标准 WireGuard peer；AWG 1.5/2.0/3.x 参数只写在客户端配置的 Interface 段，用于握手伪装与填充。</p></details>
-          <details><summary>订阅链接格式？</summary><p>Actions 生成的订阅地址是 <code>https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml</code>，可直接填入 Clash / Mihomo（需要 Alpha 内核支持 masque）。每次重新运行工作流都会替换成全新账号。</p></details>
+          <details><summary>订阅链接格式？</summary><p>Actions 生成的订阅地址是 <code>https://looomix.github.io/Warp-Masque-free/configs/warp-masque.yaml</code>，可直接填入 Clash / Mihomo（需要 Alpha 内核支持 masque）。每次重新运行工作流都会替换成全新账号。</p></details>
           <details><summary>合规说明</summary><p>非官方项目，与 Cloudflare、Amnezia、m2c 作者无关联。使用 WARP 请遵守 Cloudflare 条款与所在地区法律。</p></details>
         </div>
       </section>
     </main>
-    <footer class="footer"><div class="wrap"><strong>MASQUE To Clash · WARP Config Generator</strong><span>静态前端 + GitHub Actions 云端生成</span><span>非官方项目</span></div></footer>
+    <footer class="footer"><div class="wrap"><strong>Warp-Masque free · WARP Config Generator</strong><span>静态前端 + GitHub Actions 云端生成</span><span>非官方项目</span></div></footer>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="assets/template.js" defer></script>
     <script src="assets/app.js" defer></script>
