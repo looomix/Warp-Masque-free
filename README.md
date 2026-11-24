@@ -14,12 +14,16 @@
 3. 工作流会：
    - 下载 `usque` 并注册一台 WARP/MASQUE 设备；
    - 运行 `scripts/generate.py` 生成 40+ 个 MASQUE 节点；
-   - 把 `configs/warp-masque.yaml` 提交回仓库（触发 Pages 更新）；
+   - 把 `configs/warp-masque.yaml` 和 `configs/usque-config.json` 提交回仓库（触发 Pages 更新）；
    - 上传 `warp-masque.yaml`、`warp-masque-shadowrocket.txt` 和原始 `usque-config.json` 作为 artifact。
 4. 订阅地址：  
    <https://looomix.github.io/MASQUE-To-Clash/configs/warp-masque.yaml>  
-   Clash 导入链接：  
-   `clash://install-config?url=https%3A%2F%2Flooomix.github.io%2FMASQUE-To-Clash%2Fconfigs%2Fwarp-masque.yaml`
+   镜像订阅地址（gh-proxy）：  
+   <https://gh-proxy.com/https://raw.githubusercontent.com/looomix/MASQUE-To-Clash/main/configs/warp-masque.yaml>  
+   Clash 导入链接（使用镜像）：  
+   `clash://install-config?url=https%3A%2F%2Fgh-proxy.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Flooomix%2FMASQUE-To-Clash%2Fmain%2Fconfigs%2Fwarp-masque.yaml`
+
+页面打开时会自动读取 `configs/usque-config.json` 填入账号输入框并生成预览，无需手动复制。
 
 > 需要 **mihomo Alpha** 内核（稳定版不支持 `type: masque`）。
 
@@ -29,7 +33,7 @@
 
 ## 隐私提醒
 
-公开仓库里的 `configs/warp-masque.yaml` 和 artifact 都**包含私钥**，等同于账号凭据。任何拿到订阅链接的人都能使用该 WARP 账号。请避免公开转发，必要时把 Fork 设为私有，或在 Actions 运行时把 `commit` 取消、只下载 artifact。
+公开仓库里的 `configs/warp-masque.yaml`、`configs/usque-config.json` 和 artifact 都**包含私钥**，等同于账号凭据。任何拿到订阅链接的人都能使用该 WARP 账号。请避免公开转发，必要时把 Fork 设为私有，或在 Actions 运行时把 `commit` 取消、只下载 artifact（此时页面不会自动载入账号）。
 
 不要高频运行工作流，Cloudflare 会风控 WARP 设备注册。
 
@@ -43,6 +47,7 @@ assets/template.js             Clash YAML 模板
 scripts/generate.py            usque config.json -> Clash YAML
 .github/workflows/generate-warp.yml  Actions 工作流
 configs/warp-masque.yaml       工作流生成的订阅（含私钥）
+configs/usque-config.json      工作流生成的原始账号（页面自动载入）
 LICENSE / NOTICE               许可与出处
 .nojekyll                      GitHub Pages 标记
 ```
