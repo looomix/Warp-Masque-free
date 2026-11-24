@@ -1,14 +1,7 @@
 Cloudflare WARP Config Generator (Warp-Masque free)
 
-An independent implementation inspired by:
+This repository uses GitHub Actions to run usque on a runner, generate the
+Mihomo MASQUE subscription, and commit it to the repository so GitHub Pages
+can serve it as a Clash subscription URL.
 
-  https://github.com/byJoey/warp-masque-actions
-  https://m2c.pages.dev/
-  https://masque.pages.dev/
-
-Instead of a Cloudflare Worker, this repository uses GitHub Actions to run
-usque on a runner, generate the Mihomo MASQUE subscription, and commit it to
-the repository so GitHub Pages can serve it as a Clash subscription URL.
-
-No source code was copied from the referenced projects.
 Distributed under AGPL-3.0-only. See LICENSE for the full text.
