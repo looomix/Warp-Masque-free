@@ -1,7 +1,0 @@
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "masque-to-clash-relay",
-  "main": "worker/index.js",
-  "compatibility_date": "2026-11-24",
-  "workers_dev": true
-}
