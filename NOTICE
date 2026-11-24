@@ -1,14 +1,14 @@
 Cloudflare WARP Config Generator (MASQUE To Clash)
 
-An independent implementation inspired by the option sets and configuration
-structures of:
+An independent implementation inspired by:
 
+  https://github.com/byJoey/warp-masque-actions
   https://m2c.pages.dev/
   https://masque.pages.dev/
-  https://github.com/KJGX66F/usque-custom-pro
 
-This project adds a self-deployable Cloudflare Worker relay so that a static
-GitHub Pages site can register WARP devices and issue Clash subscriptions.
+Instead of a Cloudflare Worker, this repository uses GitHub Actions to run
+usque on a runner, generate the Mihomo MASQUE subscription, and commit it to
+the repository so GitHub Pages can serve it as a Clash subscription URL.
+
 No source code was copied from the referenced projects.
-
 Distributed under AGPL-3.0-only. See LICENSE for the full text.
