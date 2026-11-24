@@ -1,4 +1,4 @@
-window.MASQUE_TEMPLATE = `# Warp-Masque free · 由 m2c.pages.dev 的结构启发，独立实现
+window.MASQUE_TEMPLATE = `# Warp-Masque free · GitHub Actions 自动生成的 MASQUE 配置
 # 生成时间: __TIME__
 # 版本: __VERSION__
 # 提示：请保持 Mihomo/Clash.Meta 内核为最新版；本配置含私钥，请勿公开分享
