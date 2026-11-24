@@ -3,346 +3,113 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AmneziaWG 配置生成器 · 静态版</title>
-    <meta
-      name="description"
-      content="在浏览器中生成 AmneziaWG / Cloudflare WARP 配置：支持 AWG 1.5、2.0、3.0、3.1，混淆参数、路由、DNS、Endpoint 全部本地计算，密钥不上传。"
-    />
-    <meta name="theme-color" content="#07090c" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b1016'/%3E%3Cpath d='M20 44V20h8l8 13 8-13h8v24h-8V32l-8 12-8-12v12z' fill='%236ee7b7'/%3E%3C/svg%3E" />
+    <title>MASQUE To Clash · 一键转换器</title>
+    <meta name="description" content="把 Cloudflare WARP MASQUE 账号转换成 Clash / Mihomo YAML 配置，并生成可分享的订阅链接。纯前端实现。" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f172a'/%3E%3Cpath d='M14 16h10l16 20V16h10v32H40L24 28v20H14z' fill='%2360a5fa'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="assets/style.css" />
   </head>
   <body>
-    <div class="aurora" aria-hidden="true"></div>
+    <div class="glow" aria-hidden="true"></div>
 
-    <header class="site-header">
+    <header class="topbar">
       <div class="wrap nav">
-        <a class="brand" href="#top" aria-label="返回顶部">
-          <span class="brand-mark">AWG</span>
-          <span class="brand-name">Config Lab <em>static</em></span>
-        </a>
-        <nav class="nav-links" aria-label="主导航">
-          <a href="#generator">生成器</a>
-          <a href="#how">原理</a>
-          <a href="#compat">兼容性</a>
-          <a href="#faq">常见问题</a>
-        </nav>
-        <a class="btn btn-ghost nav-cta" href="https://github.com/looomix/AmneziaWG" target="_blank" rel="noopener">GitHub</a>
+        <a class="brand" href="#top"><span class="mark">M2C</span><span>MASQUE <b>To</b> Clash</span></a>
+        <nav><a href="#generator">转换器</a><a href="#how">工作原理</a><a href="#faq">FAQ</a></nav>
+        <a class="btn btn-ghost" href="https://github.com/looomix/MASQUE-To-Clash" target="_blank" rel="noopener">GitHub</a>
       </div>
     </header>
 
     <main>
       <section class="hero wrap" id="top">
-        <div class="hero-copy">
-          <div class="eyebrow"><span class="dot"></span> 纯前端 · 无需服务器 · 密钥不出浏览器</div>
-          <h1>AmneziaWG<br /><span>配置生成器</span></h1>
-          <p class="lead">
-            生成 AWG 1.5 / 2.0 / 3.0 / 3.1 的 <code>.conf</code> 隧道配置。混淆参数、路由、DNS 与 Endpoint
-            全部在你的浏览器里计算完成；本站没有后端，也不会接触你的私钥。
-          </p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="#generator">开始生成</a>
-            <a class="btn btn-secondary" href="#how">了解配置结构</a>
-          </div>
-          <div class="hero-badges">
-            <span>本地计算</span><span>无注册</span><span>历史仅存本机</span><span>AGPL-3.0</span>
-          </div>
+        <div class="eyebrow"><span></span> WARP MASQUE → Clash / Mihomo · 纯前端</div>
+        <h1>MASQUE To Clash<br /><span>一键转换器</span></h1>
+        <p class="lead">把 Cloudflare WARP MASQUE 账号转换成可直接导入 Clash / Mihomo 的 YAML 配置，并生成可复制、可分享的订阅链接。所有转换都在浏览器本地完成。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#generator">开始转换</a>
+          <a class="btn btn-secondary" href="https://m2c.pages.dev/" target="_blank" rel="noopener">参考原站</a>
         </div>
-        <div class="hero-card" aria-hidden="true">
-          <div class="terminal">
-            <div class="terminal-bar"><i></i><i></i><i></i><span>AWG31_warp.conf</span></div>
-            <pre><span class="c-key">[Interface]</span>
-<span class="c-dim">PrivateKey</span> = &lt;hidden&gt;
-<span class="c-dim">Address</span> = 172.16.0.2
-<span class="c-dim">DNS</span> = 1.1.1.1, 1.0.0.1
-<span class="c-dim">Jc</span> = 20  <span class="c-dim">Jmin</span> = 70  <span class="c-dim">Jmax</span> = 749
-<span class="c-dim">H1..H4</span> = 1, 2, 3, 4
-<span class="c-dim">ContentPaddingAddition</span> = 10-100
-<span class="c-key">[Peer]</span>
-<span class="c-dim">PublicKey</span> = bmXOC+F1...gyo=
-<span class="c-dim">Endpoint</span> = engage.cloudflareclient.com:4500</pre>
-          </div>
-        </div>
+        <div class="chips"><span>H3 / H2 / H3-L4</span><span>IPv4 / IPv6</span><span>随机端口</span><span>Fake-IP</span><span>本地订阅链接</span></div>
       </section>
 
       <section class="wrap section" id="generator">
-        <div class="section-head">
-          <div>
-            <p class="kicker">GENERATOR</p>
-            <h2>三步生成配置</h2>
-            <p class="muted">选择协议档位、填入已注册的密钥或自建服务器信息，然后生成本地配置。</p>
+        <div class="section-head"><div><p class="kicker">CONVERTER</p><h2>配置生成器</h2><p class="muted">先获取 MASQUE 账号，再按需调整参数；点击生成即可得到 YAML 与订阅链接。</p></div></div>
+
+        <div class="card step">
+          <div class="step-head"><span>01</span><div><h3>MASQUE 账号</h3><p>一键注册受服务方来源白名单限制；失败时可粘贴 m2c 生成的账号 JSON。</p></div></div>
+          <div class="account-actions">
+            <button type="button" class="btn btn-primary" id="oneClick">一键注册并生成</button>
+            <a class="btn btn-secondary" href="https://m2c.pages.dev/" target="_blank" rel="noopener">打开原站注册</a>
+            <button type="button" class="btn btn-mini" id="loadDemo">填入示例结构</button>
           </div>
+          <div class="field">
+            <label for="accountText">账号 JSON（含 private_key、endpoint_pub_key、ipv4）</label>
+            <textarea id="accountText" rows="6" spellcheck="false" placeholder='{ "private_key": "...", "endpoint_pub_key": "-----BEGIN PUBLIC KEY-----...", "ipv4": "172.16.0.2", "ipv6": "..." }'></textarea>
+          </div>
+          <div class="field-grid">
+            <div class="field"><label for="regApi">注册接口（可选，自定义 Worker）</label><input id="regApi" type="text" value="https://usque-register-server.pages.dev/0906?raw=true" /></div>
+            <div class="field"><label for="subApi">订阅托管 API（可选，兼容 /api/sub）</label><input id="subApi" type="text" placeholder="https://your-worker.workers.dev" /></div>
+          </div>
+          <p class="hint" id="accountStatus">等待账号…</p>
         </div>
 
-        <div class="env-grid" id="envStatus">
-          <div class="env-item"><span class="env-label">JavaScript</span><strong id="envJs">检测中…</strong></div>
-          <div class="env-item"><span class="env-label">X25519 密钥生成</span><strong id="envCrypto">检测中…</strong></div>
-          <div class="env-item"><span class="env-label">本地存储</span><strong id="envStorage">检测中…</strong></div>
-          <div class="env-item"><span class="env-label">网络</span><strong id="envNet">检测中…</strong></div>
+        <div class="card step">
+          <div class="step-head"><span>02</span><div><h3>节点与策略</h3><p>参照 m2c.pages.dev 的选项，生成 Mihomo 兼容配置。</p></div></div>
+          <div class="field-grid">
+            <div class="field"><label>网络模式</label><div class="segmented" id="networkMode"><label><input type="radio" name="network" value="h3" checked /><span>H3</span></label><label><input type="radio" name="network" value="h2" /><span>H2</span></label><label><input type="radio" name="network" value="h3-l4proxy" /><span>H3-L4</span></label></div></div>
+            <div class="field"><label>Endpoint 范围</label><select id="endpointMode"><option value="all">全部（官方 v4 + v6）</option><option value="v4">仅 IPv4</option><option value="v6">仅 IPv6</option><option value="single">单端点 / 域名</option></select></div>
+            <div class="field"><label for="singleEndpoint">自定义端点</label><input id="singleEndpoint" type="text" value="www.cloudflareaccess.com" /></div>
+            <div class="field"><label>端口</label><select id="portMode"><option value="random">随机（500/4500/8095/443）</option><option value="500">500</option><option value="4500">4500</option><option value="8095">8095</option><option value="443">443</option></select></div>
+            <div class="field"><label for="sni">SNI</label><input id="sni" type="text" value="www.cloudflareaccess.com" /></div>
+            <div class="field"><label for="cc">拥塞控制</label><select id="cc"><option>bbr</option><option>cubic</option><option>reno</option></select></div>
+            <div class="field"><label for="dnsMode">DNS 增强模式</label><select id="dnsMode"><option value="fake-ip">Fake-IP（虚拟模式）</option><option value="redir-host">Redir-Host</option></select></div>
+            <div class="field"><label for="testUrl">延迟测试地址</label><input id="testUrl" type="text" value="https://cloudflare.com/cdn-cgi/trace" /></div>
+            <div class="field"><label for="interval">测试间隔（秒）</label><input id="interval" type="number" min="60" value="300" /></div>
+            <div class="field"><label for="tolerance">容差（ms）</label><input id="tolerance" type="number" min="0" value="30" /></div>
+            <div class="field"><label for="namePrefix">节点名称后缀</label><input id="namePrefix" type="text" value="MASQUE导航" /></div>
+          </div>
+          <div class="toggle-row">
+            <label class="switch"><input type="checkbox" id="ipv6" /><span></span>启用 IPv6 节点</label>
+            <label class="switch"><input type="checkbox" id="udp" checked /><span></span>启用 UDP</label>
+            <label class="switch"><input type="checkbox" id="rules" checked /><span></span>包含智能分流规则</label>
+          </div>
+          <div class="generate-row"><button type="button" class="btn btn-primary btn-lg" id="generate">生成 YAML 与订阅链接</button><span class="hint">无需构建，点击即生成。</span></div>
         </div>
 
-        <form id="genForm" class="builder" novalidate>
-          <div class="card step-card">
-            <div class="step-head"><span class="step-num">01</span><div><h3>选择协议档位</h3><p>不同代际的 AWG 混淆能力与客户端要求不同。</p></div></div>
-            <div class="profile-grid">
-              <label class="profile">
-                <input type="radio" name="profile" value="legacy" />
-                <span class="profile-body"><strong>AWG 1.5</strong><small>静态混淆，兼容旧客户端</small></span>
-                <span class="tag">Legacy</span>
-              </label>
-              <label class="profile recommended">
-                <input type="radio" name="profile" value="awg2" checked />
-                <span class="profile-body"><strong>AWG 2.0</strong><small>动态头 + 填充，推荐档位</small></span>
-                <span class="tag tag-green">推荐</span>
-              </label>
-              <label class="profile">
-                <input type="radio" name="profile" value="awg3" />
-                <span class="profile-body"><strong>AWG 3.0</strong><small>时序随机化，WARP-safe</small></span>
-                <span class="tag">新</span>
-              </label>
-              <label class="profile">
-                <input type="radio" name="profile" value="awg31" />
-                <span class="profile-body"><strong>AWG 3.1</strong><small>最新客户端能力（5.0.1.5+）</small></span>
-                <span class="tag">最新</span>
-              </label>
-            </div>
+        <section class="card result" id="result" hidden>
+          <div class="result-head"><div><p class="kicker">OUTPUT</p><h3 id="resultTitle">生成完成</h3><p class="muted" id="resultMeta"></p></div>
+            <div class="actions"><button type="button" class="btn btn-mini" id="copyYaml">复制 YAML</button><button type="button" class="btn btn-mini" id="downloadYaml">下载 YAML</button></div>
           </div>
-
-          <div class="card step-card">
-            <div class="step-head"><span class="step-num">02</span><div><h3>连接与凭据</h3><p>WARP 需要导入已注册的设备密钥；自建服务器可以直接生成新密钥。</p></div></div>
-
-            <div class="field">
-              <label for="credMode">凭据来源</label>
-              <select id="credMode">
-                <option value="warp">Cloudflare WARP · 导入账户 JSON / .conf</option>
-                <option value="own">自建 WireGuard / AmneziaWG 服务器</option>
-              </select>
-            </div>
-
-            <div id="warpCred" class="cred-panel">
-              <label for="credText">粘贴 WARP 账户 JSON 或已有 .conf 内容</label>
-              <textarea id="credText" rows="5" spellcheck="false" placeholder='例如 wgcf account.json：&#10;{ "private_key": "....=", "account_id": "...." }&#10;或直接粘贴一段 wgcf-profile.conf'></textarea>
-              <div class="row-between">
-                <p class="hint">只识别 <code>private_key</code> / <code>PrivateKey</code> 与可选的 <code>Address</code> / <code>PublicKey</code>；其余字段不会被读取或上传。</p>
-                <button type="button" class="btn btn-mini" id="parseCred">解析凭据</button>
-              </div>
-            </div>
-
-            <div id="ownCred" class="cred-panel" hidden>
-              <div class="field-grid">
-                <div class="field">
-                  <label for="ownPriv">PrivateKey（本地生成）</label>
-                  <div class="input-action">
-                    <input id="ownPriv" type="text" spellcheck="false" placeholder="32 字节 base64 私钥" />
-                    <button type="button" class="btn btn-mini" id="genKey">生成密钥</button>
-                  </div>
-                </div>
-                <div class="field">
-                  <label for="ownPeer">服务端 PublicKey</label>
-                  <input id="ownPeer" type="text" spellcheck="false" value="bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=" />
-                </div>
-                <div class="field">
-                  <label for="ownAddr">本地地址</label>
-                  <input id="ownAddr" type="text" value="10.0.0.2/32" />
-                </div>
-              </div>
-              <p class="hint warn">WARP 的公钥必须已经注册在 Cloudflare 侧。浏览器随机生成的私钥只适用于你自己的服务器。</p>
-            </div>
-
-            <div class="cred-status" id="credStatus" hidden></div>
-          </div>
-
-          <div class="card step-card">
-            <div class="step-head"><span class="step-num">03</span><div><h3>网络参数</h3><p>路由、DNS、Endpoint 与设备模式。</p></div></div>
-
-            <div class="field-grid">
-              <div class="field">
-                <label>路由模式</label>
-                <div class="segmented" id="routeMode">
-                  <label><input type="radio" name="routeMode" value="full" checked /><span>全隧道</span></label>
-                  <label><input type="radio" name="routeMode" value="split" /><span>分流</span></label>
-                </div>
-              </div>
-              <div class="field">
-                <label for="dns">DNS</label>
-                <select id="dns">
-                  <option value="cloudflare">Cloudflare（1.1.1.1）</option>
-                  <option value="google">Google（8.8.8.8）</option>
-                  <option value="quad9">Quad9（9.9.9.9）</option>
-                  <option value="custom">自定义</option>
-                </select>
-              </div>
-              <div class="field" id="dnsCustomWrap" hidden>
-                <label for="dnsCustom">自定义 DNS</label>
-                <input id="dnsCustom" type="text" placeholder="1.1.1.1, 8.8.8.8" />
-              </div>
-              <div class="field">
-                <label for="endpoint">Endpoint</label>
-                <select id="endpoint">
-                  <option value="engage.cloudflareclient.com">engage.cloudflareclient.com</option>
-                  <option value="162.159.192.1">162.159.192.1</option>
-                  <option value="162.159.195.1">162.159.195.1</option>
-                  <option value="188.114.97.1">188.114.97.1</option>
-                  <option value="188.114.99.1">188.114.99.1</option>
-                  <option value="custom">自定义主机/IP</option>
-                </select>
-              </div>
-              <div class="field" id="endpointCustomWrap" hidden>
-                <label for="endpointCustom">自定义 Endpoint</label>
-                <input id="endpointCustom" type="text" placeholder="example.com 或 1.2.3.4" />
-              </div>
-              <div class="field">
-                <label for="port">UDP 端口</label>
-                <select id="port">
-                  <option>4500</option><option>2408</option><option>500</option>
-                  <option>1701</option><option>880</option><option>8854</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="device">设备模式</label>
-                <select id="device">
-                  <option value="universal">通用</option>
-                  <option value="router">路由器（低 Jc）</option>
-                  <option value="mobile">移动网络（窄 Jitter）</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="count">生成数量</label>
-                <select id="count"><option>1</option><option>2</option><option>3</option></select>
-              </div>
-            </div>
-
-            <div id="routePresets" class="presets" hidden>
-              <p class="hint">分流预设（内置示例 CIDR，最多 1000 条 IPv4 网段；请勿把 WARP Endpoint 所在网段加入路由）：</p>
-              <div class="preset-grid">
-                <label><input type="checkbox" name="route" value="youtube" /> YouTube</label>
-                <label><input type="checkbox" name="route" value="google" /> Google</label>
-                <label><input type="checkbox" name="route" value="meta" /> Meta</label>
-                <label><input type="checkbox" name="route" value="discord" /> Discord</label>
-                <label><input type="checkbox" name="route" value="telegram" /> Telegram</label>
-                <label><input type="checkbox" name="route" value="github" /> GitHub</label>
-              </div>
-            </div>
-
-            <div class="toggle-row">
-              <label class="switch"><input type="checkbox" id="ipv6" /><span></span> 包含 IPv6 路由</label>
-              <button type="button" class="btn btn-link" id="openAdvanced">高级参数：CPS / Jitter / H 范围</button>
-            </div>
-          </div>
-
-          <div class="generate-row">
-            <button type="submit" class="btn btn-primary btn-lg" id="generate">生成配置</button>
-            <p class="hint" id="generateHint">全部计算都在本机完成，不会发起任何注册请求。</p>
-          </div>
-        </form>
-
-        <section class="card result-card" id="result" hidden>
-          <div class="result-head">
-            <div>
-              <p class="kicker">RESULT</p>
-              <h3>配置已生成</h3>
-              <p class="muted" id="resultMeta"></p>
-            </div>
-            <div class="result-actions">
-              <button type="button" class="btn btn-secondary" id="copyConf">复制</button>
-              <button type="button" class="btn btn-primary" id="download">下载 .conf</button>
-            </div>
-          </div>
-          <div class="tabs">
-            <button type="button" class="tab active" data-tab="conf">完整配置</button>
-            <button type="button" class="tab" data-tab="preview">安全预览</button>
-          </div>
-          <pre class="codebox" id="confText"></pre>
-          <p class="hint" id="previewHint" hidden>预览中私钥已隐藏；复制和下载会得到完整配置。</p>
-          <p class="hint note">静态版不生成 <code>vpn://</code> 链接（需要 AmneziaVPN 的 protobuf 编码）。请使用 <code>.conf</code> 文件导入，AmneziaVPN 与 AmneziaWG 均支持。</p>
-        </section>
-
-        <section class="card history-card">
-          <div class="row-between">
-            <div><p class="kicker">HISTORY</p><h3>本机历史</h3><p class="muted">最多 20 条，仅保存在当前浏览器的 localStorage。</p></div>
-            <button type="button" class="btn btn-mini" id="clearHistory">清空历史</button>
-          </div>
-          <ul class="history-list" id="historyList"><li class="empty">暂无记录</li></ul>
+          <div class="field sub-field"><label for="subLink">订阅链接（本地解码）</label><div class="input-action"><input id="subLink" type="text" readonly /><button type="button" class="btn btn-mini" id="copySub">复制</button><button type="button" class="btn btn-mini" id="openSub">打开</button></div></div>
+          <div class="field sub-field"><label for="remoteSub">远程订阅地址（填写订阅托管 API 后生成）</label><div class="input-action"><input id="remoteSub" type="text" readonly placeholder="未配置订阅托管 API" /><button type="button" class="btn btn-mini" id="copyRemote">复制</button></div></div>
+          <pre class="codebox" id="yamlPreview"></pre>
+          <p class="hint note">订阅链接把 YAML 编码在 URL 片段中，方便本机恢复与分享；Clash 客户端直接导入远程订阅需要配置上面的订阅托管 API（兼容 <code>/api/sub</code> 契约）。链接含私钥，请勿公开传播。</p>
         </section>
       </section>
 
       <section class="wrap section" id="how">
-        <div class="section-head"><div><p class="kicker">HOW IT WORKS</p><h2>配置是怎么组装的</h2><p class="muted">完全复刻 awgconfig.com 的配置结构，但计算过程放在浏览器里。</p></div></div>
+        <div class="section-head"><div><p class="kicker">HOW</p><h2>它是怎么工作的</h2></div></div>
         <div class="grid-3">
-          <article class="card info-card"><span class="info-num">01</span><h3>Interface 段</h3><p>写入私钥、地址、DNS 与 MTU。AWG 1.5 使用静态混淆字段；2.0 起加入随机 Jc / Jmin / Jmax 与 S1–S4、H1–H4。</p></article>
-          <article class="card info-card"><span class="info-num">02</span><h3>CPS / I1 伪装</h3><p>握手前生成一段 SIP / QUIC / DNS 风格的十六进制载荷，以 <code>&lt;b 0x…&gt;</code> 形式写入 I1，让流量起点不像 WireGuard。</p></article>
-          <article class="card info-card"><span class="info-num">03</span><h3>AWG 3.x 时序参数</h3><p>加入 ContentPaddingAddition、RekeyAfterTime、RekeyTimeout、RejectAfterTime、KeepaliveTimeout、MaxHandshakeAttempts 等客户端侧随机区间。</p></article>
+          <article class="card mini"><span>01</span><h3>读取账号</h3><p>从 JSON 中提取 <code>private_key</code>、<code>endpoint_pub_key</code>、<code>ipv4/ipv6</code>，去除 PEM 头尾与空白。</p></article>
+          <article class="card mini"><span>02</span><h3>枚举节点</h3><p>按 IPv4 / IPv6 范围与端口策略组合官方端点，生成 <code>type: masque</code> 的 Mihomo 节点。</p></article>
+          <article class="card mini"><span>03</span><h3>组装订阅</h3><p>套用 DNS、Fake-IP、策略组与规则提供器，输出 YAML，并编码为可分享的本地订阅链接。</p></article>
         </div>
-        <div class="card compare-card">
-          <h3>各档位字段差异</h3>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>字段</th><th>AWG 1.5</th><th>AWG 2.0</th><th>AWG 3.0 / 3.1</th></tr></thead>
-              <tbody>
-                <tr><td>Jc / Jmin / Jmax</td><td>静态大抖动</td><td>1–25 / 64–1024</td><td>同 2.0</td></tr>
-                <tr><td>S1–S4 / H1–H4</td><td>部分字段</td><td>WARP 固定 0 / 1–4</td><td>WARP 固定 0 / 1–4</td></tr>
-                <tr><td>I1 CPS 载荷</td><td>可选</td><td>支持</td><td>支持</td></tr>
-                <tr><td>ContentPaddingAddition</td><td>—</td><td>—</td><td>10-100</td></tr>
-                <tr><td>Rekey / Keepalive 区间</td><td>—</td><td>—</td><td>支持</td></tr>
-                <tr><td>PersistentKeepalive</td><td>固定</td><td>固定</td><td>区间 25-35</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section class="wrap section" id="compat">
-        <div class="section-head"><div><p class="kicker">COMPATIBILITY</p><h2>客户端兼容性</h2></div></div>
-        <div class="grid-4">
-          <div class="card mini-card"><strong>Windows</strong><span>AmneziaWG · 导入 .conf</span></div>
-          <div class="card mini-card"><strong>Android</strong><span>AmneziaVPN / AmneziaWG</span></div>
-          <div class="card mini-card"><strong>iOS</strong><span>App Store 客户端</span></div>
-          <div class="card mini-card"><strong>路由器</strong><span>Keenetic / OpenWrt / GL.iNet</span></div>
-        </div>
-        <p class="hint note">AWG 3.1 需要 AmneziaVPN 5.0.1.5+ 或兼容客户端；导入失败时请回退到 AWG 2.0。</p>
       </section>
 
       <section class="wrap section" id="faq">
         <div class="section-head"><div><p class="kicker">FAQ</p><h2>常见问题</h2></div></div>
-        <div class="faq-list">
-          <details><summary>为什么不能像原站一样一键注册 WARP？</summary><p>原站有服务端负责向 Cloudflare 注册设备。GitHub Pages 只能托管静态文件，浏览器直接调用 Cloudflare API 会被 CORS 拦截。因此本站要求你导入已经注册的 WARP 密钥，或使用自建服务器密钥。注册步骤可用官方客户端或 wgcf 完成。</p></details>
-          <details><summary>密钥会被上传吗？</summary><p>不会。页面没有任何后端请求；所有生成逻辑都在浏览器内执行。历史记录也只写入你自己的 localStorage，可随时清空。</p></details>
-          <details><summary>分流路由准确吗？</summary><p>内置的是一组示例 CIDR，便于演示分流写法，并非实时更新的完整域名 IP 库。生产使用请替换为官方或自己维护的网段列表，并注意不要把 Endpoint IP 放进隧道路由。</p></details>
-          <details><summary>为什么 vpn:// 不可用？</summary><p>AmneziaVPN 的 <code>vpn://</code> 是二进制 protobuf 经 base64url 编码后的链接，需要专门的编码器。本站优先提供通用性更好的 <code>.conf</code> 文件。</p></details>
-          <details><summary>与 awgconfig.com 是什么关系？</summary><p>本站是受其启发、参照其公开配置结构实现的静态演示版本。原项目由 HereIamGosu 开源，协议为 AGPL-3.0；本仓库保留 LICENSE 与出处说明。</p></details>
+        <div class="faq">
+          <details><summary>为什么一键注册可能失败？</summary><p>原注册服务只允许授权域名（如 masque.pages.dev）来源访问，GitHub Pages 域名不在白名单。此时请到原站获取账号 JSON 后粘贴到本页，或在“注册接口”中填入你自己的兼容 Worker。</p></details>
+          <details><summary>订阅链接能直接在 Clash 里用吗？</summary><p>本地订阅链接需要在本页打开后才能解码出 YAML。若要在 Clash 中作为远程订阅使用，请填写一个实现了 <code>/api/sub</code> 的订阅托管 API，页面会上传 YAML 并返回真实订阅地址。</p></details>
+          <details><summary>私钥会上传吗？</summary><p>转换过程完全在本地进行。只有当你主动填写订阅托管 API 时，YAML 才会被发送到该地址；本地订阅链接本身包含私钥，请谨慎分享。</p></details>
+          <details><summary>与原站的关系？</summary><p>本页参考 <a href="https://m2c.pages.dev/" target="_blank" rel="noopener">m2c.pages.dev</a> 的选项与配置结构独立实现，与其作者无关联。</p></details>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <div class="wrap footer-inner">
-        <div><strong>AWG · Config Lab</strong><p>静态实现 · 无后端 · 密钥本地处理</p></div>
-        <div class="footer-links">
-          <a href="https://github.com/HereIamGosu/amnezia-config-gen" target="_blank" rel="noopener">原项目</a>
-          <a href="https://github.com/looomix/AmneziaWG" target="_blank" rel="noopener">本仓库</a>
-          <a href="https://amnezia.org/" target="_blank" rel="noopener">Amnezia</a>
-        </div>
-        <p class="disclaimer">非官方项目，与 Cloudflare 及 Amnezia 团队无关联。使用 WARP 需遵守 Cloudflare 条款；请遵守所在地区法律。</p>
-      </div>
-    </footer>
-
-    <dialog id="advanced" class="modal">
-      <form method="dialog" class="modal-inner">
-        <div class="row-between"><h3>高级参数</h3><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
-        <p class="hint">留空或选择 Auto 时使用安全默认值。WARP 模式下 S/H 会被强制固定以兼容 Cloudflare 的标准 WireGuard peer。</p>
-        <div class="field-grid">
-          <div class="field"><label for="cps">I1 协议</label><select id="cps"><option value="auto">Auto（稳定预设）</option><option value="sip">SIP</option><option value="quic">QUIC</option><option value="dns">DNS</option><option value="stun">STUN</option><option value="dtls">DTLS</option><option value="static">静态二进制</option></select></div>
-          <div class="field"><label for="cps5">额外 I2–I5</label><select id="cps5"><option value="0">关闭</option><option value="1">开启（需新客户端）</option></select></div>
-          <div class="field"><label for="jcOverride">Jc 覆盖</label><input id="jcOverride" type="number" min="1" max="150" placeholder="自动" /></div>
-          <div class="field"><label for="jminOverride">Jmin 覆盖</label><input id="jminOverride" type="number" min="20" max="1024" placeholder="自动" /></div>
-          <div class="field"><label for="jmaxOverride">Jmax 覆盖</label><input id="jmaxOverride" type="number" min="20" max="1024" placeholder="自动" /></div>
-          <div class="field"><label for="i1Hex">自定义 I1 十六进制</label><input id="i1Hex" type="text" placeholder='将写入 <b 0x…>' /></div>
-        </div>
-        <div class="modal-actions"><button class="btn btn-mini" id="resetAdvanced" type="button">恢复默认</button><button class="btn btn-primary btn-mini" value="ok" type="submit">完成</button></div>
-      </form>
-    </dialog>
-
+    <footer class="footer"><div class="wrap"><strong>MASQUE To Clash</strong><span>静态实现 · 本地转换 · 非官方项目</span><span>遵守 Cloudflare 服务条款与当地法律</span></div></footer>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="assets/template.js" defer></script>
     <script src="assets/app.js" defer></script>
   </body>
 </html>
