@@ -1,6 +1,6 @@
 # Cloudflare WARP 配置生成器（Warp-Masque free）
 
-参照 [byJoey/warp-masque-actions](https://github.com/byJoey/warp-masque-actions) 的原理，用 **GitHub Actions** 在服务端注册 Cloudflare WARP 设备并生成 Mihomo/Clash 的 MASQUE 订阅；站点本身是纯静态 GitHub Pages，不需要 Cloudflare Worker，也不需要自己的服务器。
+用 **GitHub Actions** 在服务端注册 Cloudflare WARP 设备并生成 Mihomo/Clash 的 MASQUE 订阅；站点本身是纯静态 GitHub Pages，不需要 Cloudflare Worker，也不需要自己的服务器。
 
 在线站点：<https://looomix.github.io/Warp-Masque-free/>
 仓库：<https://github.com/looomix/Warp-Masque-free>
@@ -54,4 +54,4 @@ LICENSE / NOTICE               许可与出处
 
 ## 致谢与许可
 
-实现原理参考 [byJoey/warp-masque-actions](https://github.com/byJoey/warp-masque-actions)、[m2c.pages.dev](https://m2c.pages.dev/) 与 [MASQUE 导航](https://masque.pages.dev/)，本项目为独立实现，AGPL-3.0。非官方项目，与 Cloudflare、Amnezia 及上述作者无关联。使用 WARP 请遵守 Cloudflare 条款与所在地区法律。
+本项目为独立实现，采用 AGPL-3.0 许可。非官方项目，与 Cloudflare、Amnezia 无关联。使用 WARP 请遵守 Cloudflare 条款与所在地区法律。
