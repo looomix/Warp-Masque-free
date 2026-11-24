@@ -16,12 +16,7 @@
    - 运行 `scripts/generate.py` 生成 40+ 个 MASQUE 节点；
    - 把 `configs/warp-masque.yaml` 和 `configs/usque-config.json` 提交回仓库（触发 Pages 更新）；
    - 上传 `warp-masque.yaml`、`warp-masque-shadowrocket.txt` 和原始 `usque-config.json` 作为 artifact。
-4. 订阅地址：  
-   <https://looomix.github.io/Warp-Masque-free/configs/warp-masque.yaml>  
-   镜像订阅地址（gh-proxy）：  
-   <https://gh-proxy.com/https://raw.githubusercontent.com/looomix/Warp-Masque-free/main/configs/warp-masque.yaml>  
-   Clash 导入链接（使用镜像）：  
-   `clash://install-config?url=https%3A%2F%2Fgh-proxy.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Flooomix%2FWarp-Masque-free%2Fmain%2Fconfigs%2Fwarp-masque.yaml`
+4. 订阅地址请在站点页面查看：<https://looomix.github.io/Warp-Masque-free/>
 
 页面打开时会自动读取 `configs/usque-config.json` 填入账号输入框并生成预览，无需手动复制。
 
@@ -29,7 +24,7 @@
 
 ### 本地转换
 
-把 usque / m2c 生成的账号 JSON 粘贴到网页输入框，点击“从账号 JSON 生成输出”，可在本地得到 Clash YAML 与（当账号含 X25519 私钥时）WireGuard/AWG `.conf`。本地转换不上传任何数据。
+把 usque 生成的账号 JSON 粘贴到网页输入框，点击“从账号 JSON 生成输出”，可在本地得到 Clash YAML 与（当账号含 X25519 私钥时）WireGuard/AWG `.conf`。本地转换不上传任何数据。
 
 ## 隐私提醒
 
