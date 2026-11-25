@@ -9,9 +9,9 @@ import sys
 import urllib.parse
 from datetime import datetime
 
-V4 = ["162.159.198.1", "162.159.198.2", "162.159.199.1", "162.159.199.2"]
-V6 = ["2606:4700:103::1", "2606:4700:103::2", "2606:4700:104::1", "2606:4700:104::2"]
-PORTS = (443, 500, 1701, 4500, 8095)
+V4 = ["162.159.198.2", "162.159.199.2"]
+V6 = ["2606:4700:103::2", "2606:4700:104::2"]
+PORTS = (443, 500, 1701, 4500)
 SNI = "www.cloudflareaccess.com"
 RS = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite"
 
@@ -103,9 +103,9 @@ def main():
 # 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 # 需要 mihomo Alpha 内核；private-key 等同账号凭据，请勿公开转发
 mode: rule
-allow-lan: true
+allow-lan: false
 mixed-port: 7890
-bind-address: '*'
+bind-address: 127.0.0.1
 ipv6: true
 unified-delay: true
 tcp-concurrent: true
