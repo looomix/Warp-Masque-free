@@ -505,7 +505,7 @@
     $("#statNodes").textContent = `${meta.nodes ?? "—"} / ${meta.probed ? (meta.healthy ?? 0) : "未测速"}`;
     const best = meta.bestEndpoint && meta.bestEndpoint.latencyMs;
     $("#statBest").textContent = best != null
-      ? `${best} ms · ${meta.bestEndpoint.port}`
+      ? `${best} ms · :${meta.bestEndpoint.port}`
       : "—";
   }
 
