@@ -22,7 +22,7 @@
     return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
   };
 
-  const state = { account: null, outputs: { conf: "", yaml: "", sub: "" }, tab: "yaml" };
+  const state = { account: null, canonicalYaml: "", manualOverride: false, outputs: { conf: "", yaml: "", sub: "" }, tab: "yaml" };
 
   function toast(message) {
     const el = $("#toast");
@@ -100,9 +100,9 @@
   function endpointNodes() {
     const wantV6 = $("#ipv6").checked;
     const mode = $("#endpointMode").value;
-    const ports = $("#portMode").value === "random" ? [443, 500, 1701, 4500, 8095] : [Number($("#portMode").value)];
+    const ports = $("#portMode").value === "random" ? [443, 500, 1701, 4500] : [Number($("#portMode").value)];
     let servers;
-    if (mode === "v6") servers = wantV6 ? ["2606:4700:103::1", "2606:4700:103::2"] : [];
+    if (mode === "v6") servers = wantV6 ? ["2606:4700:103::2", "2606:4700:104::2"] : [];
     else if (mode === "v4") servers = ["162.159.198.2", "162.159.199.2"];
     else {
       servers = ["162.159.198.2", "162.159.199.2"];
@@ -161,7 +161,7 @@
 
   function render() {
     state.outputs.conf = buildConf();
-    state.outputs.yaml = buildYaml();
+    state.outputs.yaml = state.manualOverride || !state.canonicalYaml ? buildYaml() : state.canonicalYaml;
     state.outputs.sub = [
       "公开订阅地址（GitHub Pages）：",
       SUB_URL,
@@ -172,8 +172,7 @@
       "Clash 导入链接（镜像）：",
       IMPORT_URL,
       "",
-      "本地账号临时链接（含私钥，打开本页即可恢复）：",
-      `${location.origin}${location.pathname}#sub=${b64urlEncode(state.outputs.yaml)}`,
+      "私钥不会编码进 URL。需要本地备份请使用“下载文件”或“复制”。",
     ].join("\n");
     $("#result").hidden = false;
     $("#resultMeta").textContent = `${$("#profile").value.toUpperCase()} · ${$("#network").value.toUpperCase()} · 本地转换`;
@@ -219,13 +218,15 @@
     $("#generate").addEventListener("click", () => {
       try {
         parseAccount();
+        state.manualOverride = true;
         render();
-        status("已从账号 JSON 本地生成配置。");
+        status("已从账号 JSON 本地生成配置（本地预览，可能与订阅内容不同）。");
         toast("配置已生成");
       } catch (error) {
         toast(error.message);
       }
     });
+    $("#reloadSub").addEventListener("click", () => loadPublishedConfig(true));
     $("#copyRemote").addEventListener("click", () => copyText(SUB_URL, "订阅地址已复制"));
     $("#copyMirror").addEventListener("click", () => copyText(MIRROR_URL, "镜像地址已复制"));
     $("#copyImport").addEventListener("click", () => copyText(IMPORT_URL, "导入链接已复制"));
@@ -275,23 +276,39 @@
     }
   }
 
-  async function autoLoadGeneratedAccount() {
+  async function loadPublishedConfig(announce = false) {
+    status("正在读取已发布的配置…");
+    const stamp = Date.now();
+    let account = null;
+    let yaml = null;
     try {
-      const response = await fetch(`configs/usque-config.json?t=${Date.now()}`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const account = await response.json();
-      $("#accountText").value = JSON.stringify(account, null, 2);
-      parseAccount();
-      render();
-      status("已自动载入 Actions 生成的账号并更新输出。可点击“重新生成输出”应用左侧选项。");
-    } catch {
-      if (!$("#accountText").value.trim()) {
-        status("尚未检测到 Actions 生成的账号 JSON。可运行工作流或手动粘贴账号。");
-      }
+      const accountResponse = await fetch(`configs/usque-config.json?t=${stamp}`, { cache: "no-store" });
+      if (accountResponse.ok) account = await accountResponse.json();
+    } catch { /* 账号文件可能未公开 */ }
+    try {
+      const yamlResponse = await fetch(`configs/warp-masque.yaml?t=${stamp}`, { cache: "no-store" });
+      if (yamlResponse.ok) yaml = await yamlResponse.text();
+    } catch { /* 订阅文件可能未公开 */ }
+
+    if (!account && !yaml) {
+      status("未找到已发布的配置。请运行 Actions（开启 commit）或手动粘贴账号。", true);
+      return;
     }
+    if (account) {
+      $("#accountText").value = JSON.stringify(account, null, 2);
+      try {
+        parseAccount();
+      } catch { /* 订阅仍可展示 */ }
+    }
+    if (yaml) {
+      state.canonicalYaml = yaml;
+      state.manualOverride = false;
+    }
+    render();
+    status(announce ? "订阅内容已刷新。" : "已自动载入 Actions 发布的配置。");
   }
 
   bindEvents();
   restoreHash();
-  autoLoadGeneratedAccount();
+  loadPublishedConfig();
 })();
