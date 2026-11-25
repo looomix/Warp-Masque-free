@@ -1,10 +1,10 @@
 # Cloudflare WARP MASQUE 订阅 · GitHub Actions 自动生成
-# 生成时间: 2026-11-25 01:11:16
+# 生成时间: 2026-11-25 01:36:27
 # 需要 mihomo Alpha 内核；private-key 等同账号凭据，请勿公开转发
 mode: rule
-allow-lan: true
+allow-lan: false
 mixed-port: 7890
-bind-address: '*'
+bind-address: 127.0.0.1
 ipv6: true
 unified-delay: true
 tcp-concurrent: true
@@ -46,565 +46,245 @@ dns:
       - https://8.8.8.8/dns-query
 
 proxies:
-  - name: "WARP | 162.159.198.1 | 443"
-    type: masque
-    server: 162.159.198.1
-    port: 443
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.198.1 | 500"
-    type: masque
-    server: 162.159.198.1
-    port: 500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.198.1 | 1701"
-    type: masque
-    server: 162.159.198.1
-    port: 1701
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.198.1 | 4500"
-    type: masque
-    server: 162.159.198.1
-    port: 4500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.198.1 | 8095"
-    type: masque
-    server: 162.159.198.1
-    port: 8095
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
   - name: "WARP | 162.159.198.2 | 443"
     type: masque
     server: 162.159.198.2
     port: 443
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.198.2 | 500"
+  - name: "WARP | 162.159.198.2 | 4443"
     type: masque
     server: 162.159.198.2
-    port: 500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    port: 4443
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.198.2 | 1701"
+  - name: "WARP | 162.159.198.2 | 8443"
     type: masque
     server: 162.159.198.2
-    port: 1701
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    port: 8443
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.198.2 | 4500"
-    type: masque
-    server: 162.159.198.2
-    port: 4500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
   - name: "WARP | 162.159.198.2 | 8095"
     type: masque
     server: 162.159.198.2
     port: 8095
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.199.1 | 443"
-    type: masque
-    server: 162.159.199.1
-    port: 443
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.199.1 | 500"
-    type: masque
-    server: 162.159.199.1
-    port: 500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.199.1 | 1701"
-    type: masque
-    server: 162.159.199.1
-    port: 1701
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.199.1 | 4500"
-    type: masque
-    server: 162.159.199.1
-    port: 4500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.199.1 | 8095"
-    type: masque
-    server: 162.159.199.1
-    port: 8095
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
   - name: "WARP | 162.159.199.2 | 443"
     type: masque
     server: 162.159.199.2
     port: 443
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.199.2 | 500"
+  - name: "WARP | 162.159.199.2 | 4443"
     type: masque
     server: 162.159.199.2
-    port: 500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    port: 4443
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.199.2 | 1701"
+  - name: "WARP | 162.159.199.2 | 8443"
     type: masque
     server: 162.159.199.2
-    port: 1701
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    port: 8443
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 162.159.199.2 | 4500"
-    type: masque
-    server: 162.159.199.2
-    port: 4500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
   - name: "WARP | 162.159.199.2 | 8095"
     type: masque
     server: 162.159.199.2
     port: 8095
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:103::1 | 443"
-    type: masque
-    server: 2606:4700:103::1
-    port: 443
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:103::1 | 500"
-    type: masque
-    server: 2606:4700:103::1
-    port: 500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:103::1 | 1701"
-    type: masque
-    server: 2606:4700:103::1
-    port: 1701
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:103::1 | 4500"
-    type: masque
-    server: 2606:4700:103::1
-    port: 4500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:103::1 | 8095"
-    type: masque
-    server: 2606:4700:103::1
-    port: 8095
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
   - name: "WARP | 2606:4700:103::2 | 443"
     type: masque
     server: 2606:4700:103::2
     port: 443
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:103::2 | 500"
+  - name: "WARP | 2606:4700:103::2 | 4443"
     type: masque
     server: 2606:4700:103::2
-    port: 500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    port: 4443
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:103::2 | 1701"
+  - name: "WARP | 2606:4700:103::2 | 8443"
     type: masque
     server: 2606:4700:103::2
-    port: 1701
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    port: 8443
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:103::2 | 4500"
-    type: masque
-    server: 2606:4700:103::2
-    port: 4500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
   - name: "WARP | 2606:4700:103::2 | 8095"
     type: masque
     server: 2606:4700:103::2
     port: 8095
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:104::1 | 443"
-    type: masque
-    server: 2606:4700:104::1
-    port: 443
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:104::1 | 500"
-    type: masque
-    server: 2606:4700:104::1
-    port: 500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:104::1 | 1701"
-    type: masque
-    server: 2606:4700:104::1
-    port: 1701
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:104::1 | 4500"
-    type: masque
-    server: 2606:4700:104::1
-    port: 4500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:104::1 | 8095"
-    type: masque
-    server: 2606:4700:104::1
-    port: 8095
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
   - name: "WARP | 2606:4700:104::2 | 443"
     type: masque
     server: 2606:4700:104::2
     port: 443
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:104::2 | 500"
+  - name: "WARP | 2606:4700:104::2 | 4443"
     type: masque
     server: 2606:4700:104::2
-    port: 500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    port: 4443
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:104::2 | 1701"
+  - name: "WARP | 2606:4700:104::2 | 8443"
     type: masque
     server: 2606:4700:104::2
-    port: 1701
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    port: 8443
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
-    sni: www.cloudflareaccess.com
-  - name: "WARP | 2606:4700:104::2 | 4500"
-    type: masque
-    server: 2606:4700:104::2
-    port: 4500
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
-    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
-    ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
-    uri: https://cloudflareaccess.com
-    mtu: 1280
-    udp: true
-    remote-dns-resolve: true
-    congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
   - name: "WARP | 2606:4700:104::2 | 8095"
     type: masque
     server: 2606:4700:104::2
     port: 8095
-    private-key: MHcCAQEEIIYtt3wqJ2HtFtsCMPHrKcrkfxBoABIUPvLsdH55LPgVoAoGCCqGSM49AwEHoUQDQgAEpzpSIBVEkYtksZIf8HELUkQHy8j/2IEWFb2C/HfJqjpGs2XX51ub6C3sKmzTb0VcIN4O/Xy2MDNtOiQxqp0SqQ==
+    private-key: MHcCAQEEILSK6CWwKeD7AH1yrZsAnjNUorOuSJ7NzIfDvzFG78ZXoAoGCCqGSM49AwEHoUQDQgAEpHHohVKt3FIQ3I9N3mUVrrprXwBeZsd66meQLNqv6ElIpkiT9CEU/3707cU9tUm6a6HN4udZDs8242YnjCEEYw==
     public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:89d3:60b3:6798:8cdf:e275
+    ipv6: 2606:4700:110:8df5:7296:7ded:40a3:2fa4
     uri: https://cloudflareaccess.com
     mtu: 1280
     udp: true
     remote-dns-resolve: true
     congestion-controller: bbr
+    dns: [ 1.1.1.1, 8.8.8.8 ]
     sni: www.cloudflareaccess.com
 
 proxy-groups:
@@ -614,45 +294,21 @@ proxy-groups:
   - name: 手动切换
     type: select
     proxies:
-      - "WARP | 162.159.198.1 | 443"
-      - "WARP | 162.159.198.1 | 500"
-      - "WARP | 162.159.198.1 | 1701"
-      - "WARP | 162.159.198.1 | 4500"
-      - "WARP | 162.159.198.1 | 8095"
       - "WARP | 162.159.198.2 | 443"
-      - "WARP | 162.159.198.2 | 500"
-      - "WARP | 162.159.198.2 | 1701"
-      - "WARP | 162.159.198.2 | 4500"
+      - "WARP | 162.159.198.2 | 4443"
+      - "WARP | 162.159.198.2 | 8443"
       - "WARP | 162.159.198.2 | 8095"
-      - "WARP | 162.159.199.1 | 443"
-      - "WARP | 162.159.199.1 | 500"
-      - "WARP | 162.159.199.1 | 1701"
-      - "WARP | 162.159.199.1 | 4500"
-      - "WARP | 162.159.199.1 | 8095"
       - "WARP | 162.159.199.2 | 443"
-      - "WARP | 162.159.199.2 | 500"
-      - "WARP | 162.159.199.2 | 1701"
-      - "WARP | 162.159.199.2 | 4500"
+      - "WARP | 162.159.199.2 | 4443"
+      - "WARP | 162.159.199.2 | 8443"
       - "WARP | 162.159.199.2 | 8095"
-      - "WARP | 2606:4700:103::1 | 443"
-      - "WARP | 2606:4700:103::1 | 500"
-      - "WARP | 2606:4700:103::1 | 1701"
-      - "WARP | 2606:4700:103::1 | 4500"
-      - "WARP | 2606:4700:103::1 | 8095"
       - "WARP | 2606:4700:103::2 | 443"
-      - "WARP | 2606:4700:103::2 | 500"
-      - "WARP | 2606:4700:103::2 | 1701"
-      - "WARP | 2606:4700:103::2 | 4500"
+      - "WARP | 2606:4700:103::2 | 4443"
+      - "WARP | 2606:4700:103::2 | 8443"
       - "WARP | 2606:4700:103::2 | 8095"
-      - "WARP | 2606:4700:104::1 | 443"
-      - "WARP | 2606:4700:104::1 | 500"
-      - "WARP | 2606:4700:104::1 | 1701"
-      - "WARP | 2606:4700:104::1 | 4500"
-      - "WARP | 2606:4700:104::1 | 8095"
       - "WARP | 2606:4700:104::2 | 443"
-      - "WARP | 2606:4700:104::2 | 500"
-      - "WARP | 2606:4700:104::2 | 1701"
-      - "WARP | 2606:4700:104::2 | 4500"
+      - "WARP | 2606:4700:104::2 | 4443"
+      - "WARP | 2606:4700:104::2 | 8443"
       - "WARP | 2606:4700:104::2 | 8095"
   - name: 自动选择
     type: url-test
@@ -661,90 +317,42 @@ proxy-groups:
     tolerance: 30
     lazy: true
     proxies:
-      - "WARP | 162.159.198.1 | 443"
-      - "WARP | 162.159.198.1 | 500"
-      - "WARP | 162.159.198.1 | 1701"
-      - "WARP | 162.159.198.1 | 4500"
-      - "WARP | 162.159.198.1 | 8095"
       - "WARP | 162.159.198.2 | 443"
-      - "WARP | 162.159.198.2 | 500"
-      - "WARP | 162.159.198.2 | 1701"
-      - "WARP | 162.159.198.2 | 4500"
+      - "WARP | 162.159.198.2 | 4443"
+      - "WARP | 162.159.198.2 | 8443"
       - "WARP | 162.159.198.2 | 8095"
-      - "WARP | 162.159.199.1 | 443"
-      - "WARP | 162.159.199.1 | 500"
-      - "WARP | 162.159.199.1 | 1701"
-      - "WARP | 162.159.199.1 | 4500"
-      - "WARP | 162.159.199.1 | 8095"
       - "WARP | 162.159.199.2 | 443"
-      - "WARP | 162.159.199.2 | 500"
-      - "WARP | 162.159.199.2 | 1701"
-      - "WARP | 162.159.199.2 | 4500"
+      - "WARP | 162.159.199.2 | 4443"
+      - "WARP | 162.159.199.2 | 8443"
       - "WARP | 162.159.199.2 | 8095"
-      - "WARP | 2606:4700:103::1 | 443"
-      - "WARP | 2606:4700:103::1 | 500"
-      - "WARP | 2606:4700:103::1 | 1701"
-      - "WARP | 2606:4700:103::1 | 4500"
-      - "WARP | 2606:4700:103::1 | 8095"
       - "WARP | 2606:4700:103::2 | 443"
-      - "WARP | 2606:4700:103::2 | 500"
-      - "WARP | 2606:4700:103::2 | 1701"
-      - "WARP | 2606:4700:103::2 | 4500"
+      - "WARP | 2606:4700:103::2 | 4443"
+      - "WARP | 2606:4700:103::2 | 8443"
       - "WARP | 2606:4700:103::2 | 8095"
-      - "WARP | 2606:4700:104::1 | 443"
-      - "WARP | 2606:4700:104::1 | 500"
-      - "WARP | 2606:4700:104::1 | 1701"
-      - "WARP | 2606:4700:104::1 | 4500"
-      - "WARP | 2606:4700:104::1 | 8095"
       - "WARP | 2606:4700:104::2 | 443"
-      - "WARP | 2606:4700:104::2 | 500"
-      - "WARP | 2606:4700:104::2 | 1701"
-      - "WARP | 2606:4700:104::2 | 4500"
+      - "WARP | 2606:4700:104::2 | 4443"
+      - "WARP | 2606:4700:104::2 | 8443"
       - "WARP | 2606:4700:104::2 | 8095"
   - name: 故障转移
     type: fallback
     url: https://cloudflare.com/cdn-cgi/trace
     interval: 180
     proxies:
-      - "WARP | 162.159.198.1 | 443"
-      - "WARP | 162.159.198.1 | 500"
-      - "WARP | 162.159.198.1 | 1701"
-      - "WARP | 162.159.198.1 | 4500"
-      - "WARP | 162.159.198.1 | 8095"
       - "WARP | 162.159.198.2 | 443"
-      - "WARP | 162.159.198.2 | 500"
-      - "WARP | 162.159.198.2 | 1701"
-      - "WARP | 162.159.198.2 | 4500"
+      - "WARP | 162.159.198.2 | 4443"
+      - "WARP | 162.159.198.2 | 8443"
       - "WARP | 162.159.198.2 | 8095"
-      - "WARP | 162.159.199.1 | 443"
-      - "WARP | 162.159.199.1 | 500"
-      - "WARP | 162.159.199.1 | 1701"
-      - "WARP | 162.159.199.1 | 4500"
-      - "WARP | 162.159.199.1 | 8095"
       - "WARP | 162.159.199.2 | 443"
-      - "WARP | 162.159.199.2 | 500"
-      - "WARP | 162.159.199.2 | 1701"
-      - "WARP | 162.159.199.2 | 4500"
+      - "WARP | 162.159.199.2 | 4443"
+      - "WARP | 162.159.199.2 | 8443"
       - "WARP | 162.159.199.2 | 8095"
-      - "WARP | 2606:4700:103::1 | 443"
-      - "WARP | 2606:4700:103::1 | 500"
-      - "WARP | 2606:4700:103::1 | 1701"
-      - "WARP | 2606:4700:103::1 | 4500"
-      - "WARP | 2606:4700:103::1 | 8095"
       - "WARP | 2606:4700:103::2 | 443"
-      - "WARP | 2606:4700:103::2 | 500"
-      - "WARP | 2606:4700:103::2 | 1701"
-      - "WARP | 2606:4700:103::2 | 4500"
+      - "WARP | 2606:4700:103::2 | 4443"
+      - "WARP | 2606:4700:103::2 | 8443"
       - "WARP | 2606:4700:103::2 | 8095"
-      - "WARP | 2606:4700:104::1 | 443"
-      - "WARP | 2606:4700:104::1 | 500"
-      - "WARP | 2606:4700:104::1 | 1701"
-      - "WARP | 2606:4700:104::1 | 4500"
-      - "WARP | 2606:4700:104::1 | 8095"
       - "WARP | 2606:4700:104::2 | 443"
-      - "WARP | 2606:4700:104::2 | 500"
-      - "WARP | 2606:4700:104::2 | 1701"
-      - "WARP | 2606:4700:104::2 | 4500"
+      - "WARP | 2606:4700:104::2 | 4443"
+      - "WARP | 2606:4700:104::2 | 8443"
       - "WARP | 2606:4700:104::2 | 8095"
 
 rule-providers:
