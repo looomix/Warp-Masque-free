@@ -1,0 +1,182 @@
+{
+  "checkedAt": "2026-11-25T02:21:48Z",
+  "sni": "www.cloudflareaccess.com",
+  "testUrl": "https://cloudflare.com/cdn-cgi/trace",
+  "maxLatency": 1200,
+  "total": 16,
+  "healthy": 8,
+  "dropped": 8,
+  "ports": [
+    {
+      "port": 443,
+      "ok": 2,
+      "fail": 2
+    },
+    {
+      "port": 4443,
+      "ok": 2,
+      "fail": 2
+    },
+    {
+      "port": 8095,
+      "ok": 2,
+      "fail": 2
+    },
+    {
+      "port": 8443,
+      "ok": 2,
+      "fail": 2
+    }
+  ],
+  "nodes": [
+    {
+      "server": "162.159.198.2",
+      "port": 8095,
+      "ok": true,
+      "latencyMs": 2,
+      "method": "tcp",
+      "error": null,
+      "kept": true
+    },
+    {
+      "server": "162.159.199.2",
+      "port": 4443,
+      "ok": true,
+      "latencyMs": 2,
+      "method": "tcp",
+      "error": null,
+      "kept": true
+    },
+    {
+      "server": "162.159.199.2",
+      "port": 8095,
+      "ok": true,
+      "latencyMs": 2,
+      "method": "tcp",
+      "error": null,
+      "kept": true
+    },
+    {
+      "server": "162.159.198.2",
+      "port": 4443,
+      "ok": true,
+      "latencyMs": 4,
+      "method": "tcp",
+      "error": null,
+      "kept": true
+    },
+    {
+      "server": "162.159.198.2",
+      "port": 8443,
+      "ok": true,
+      "latencyMs": 14,
+      "method": "tls",
+      "error": null,
+      "kept": true
+    },
+    {
+      "server": "162.159.199.2",
+      "port": 8443,
+      "ok": true,
+      "latencyMs": 15,
+      "method": "tls",
+      "error": null,
+      "kept": true
+    },
+    {
+      "server": "162.159.198.2",
+      "port": 443,
+      "ok": true,
+      "latencyMs": 18,
+      "method": "tls",
+      "error": null,
+      "kept": true
+    },
+    {
+      "server": "162.159.199.2",
+      "port": 443,
+      "ok": true,
+      "latencyMs": 23,
+      "method": "tls",
+      "error": null,
+      "kept": true
+    },
+    {
+      "server": "2606:4700:103::2",
+      "port": 443,
+      "ok": false,
+      "latencyMs": null,
+      "method": "tls",
+      "error": "[Errno 101] Network is unreachable",
+      "kept": false
+    },
+    {
+      "server": "2606:4700:103::2",
+      "port": 4443,
+      "ok": false,
+      "latencyMs": null,
+      "method": "tcp",
+      "error": "[Errno 101] Network is unreachable",
+      "kept": false
+    },
+    {
+      "server": "2606:4700:103::2",
+      "port": 8443,
+      "ok": false,
+      "latencyMs": null,
+      "method": "tls",
+      "error": "[Errno 101] Network is unreachable",
+      "kept": false
+    },
+    {
+      "server": "2606:4700:103::2",
+      "port": 8095,
+      "ok": false,
+      "latencyMs": null,
+      "method": "tcp",
+      "error": "[Errno 101] Network is unreachable",
+      "kept": false
+    },
+    {
+      "server": "2606:4700:104::2",
+      "port": 443,
+      "ok": false,
+      "latencyMs": null,
+      "method": "tls",
+      "error": "[Errno 101] Network is unreachable",
+      "kept": false
+    },
+    {
+      "server": "2606:4700:104::2",
+      "port": 4443,
+      "ok": false,
+      "latencyMs": null,
+      "method": "tcp",
+      "error": "[Errno 101] Network is unreachable",
+      "kept": false
+    },
+    {
+      "server": "2606:4700:104::2",
+      "port": 8443,
+      "ok": false,
+      "latencyMs": null,
+      "method": "tls",
+      "error": "[Errno 101] Network is unreachable",
+      "kept": false
+    },
+    {
+      "server": "2606:4700:104::2",
+      "port": 8095,
+      "ok": false,
+      "latencyMs": null,
+      "method": "tcp",
+      "error": "[Errno 101] Network is unreachable",
+      "kept": false
+    }
+  ],
+  "hints": [
+    "非 443 端口可达，说明网络未强制只放行 443；建议优先使用延迟最低的那组节点。",
+    "masque 出站需要 Mihomo Alpha 内核（>= 1.19.0-alpha）；稳定版会报 unknown proxy type",
+    "若订阅导入后全部超时：核对 SNI（默认 www.cloudflareaccess.com）、系统时间误差 < 60 秒、MTU 1280。"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "updatedAt": "2026-11-25T02:21:48Z",
+  "keep": 10,
+  "versions": [
+    {
+      "version": "20261125-022148",
+      "file": "warp-masque-20261125-022148.yaml",
+      "createdAt": "2026-11-25T02:21:48Z",
+      "createdAtLocal": "2026-11-25 02:21:48",
+      "nodes": 8,
+      "healthy": 8,
+      "bestLatencyMs": 2,
+      "bestEndpoint": "162.159.198.2:8095"
+    }
+  ]
+}
