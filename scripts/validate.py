@@ -30,8 +30,8 @@ def main():
             fail(f"缺少字段 {key}")
 
     proxies = data.get("proxies") or []
-    if not isinstance(proxies, list) or len(proxies) < 8 or len(proxies) > 100:
-        fail("proxies 数量异常")
+    if not isinstance(proxies, list) or not proxies or len(proxies) > 100:
+        fail("proxies 数量异常（测速会剔除不可达端点，1-100 个都视为正常）")
     names = [p.get("name") for p in proxies if isinstance(p, dict)]
     if len(names) != len(set(names)):
         fail("存在重复的节点名称")

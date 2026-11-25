@@ -1,0 +1,90 @@
+name: 回滚配置版本
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 目标版本号（例如 20261125-101500，可在网页“配置版本”列表复制）
+        required: true
+      keep_current:
+        description: 回滚前先把当前 YAML 另存为一份快照
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: 校验版本并回滚
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+          KEEP_CURRENT: ${{ inputs.keep_current }}
+        run: |
+          set -euo pipefail
+          SRC="configs/history/warp-masque-${VERSION}.yaml"
+          if [ ! -f "$SRC" ]; then
+            echo "::error::找不到 $SRC。可用版本："
+            ls -1 configs/history/ | grep -E '^warp-masque-.*\.yaml$' || true
+            exit 1
+          fi
+          mkdir -p configs/history
+          if [ "${KEEP_CURRENT}" != "false" ] && [ -f configs/warp-masque.yaml ]; then
+            STAMP="$(date -u +%Y%m%d-%H%M%S)"
+            cp configs/warp-masque.yaml "configs/history/warp-masque-${STAMP}-prerollback.yaml"
+          fi
+          cp "$SRC" configs/warp-masque.yaml
+
+      - name: 更新 meta.json
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          version = os.environ["VERSION"]
+          now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+          path = "configs/meta.json"
+          try:
+              meta = json.load(open(path, encoding="utf-8"))
+          except Exception:
+              meta = {}
+          try:
+              index = json.load(open("configs/history/index.json", encoding="utf-8"))
+              entry = next((v for v in index.get("versions", []) if v.get("version") == version), {})
+          except Exception:
+              entry = {}
+          meta["rolledBackTo"] = version
+          meta["rolledBackAt"] = now
+          meta["generatedAt"] = entry.get("createdAt", meta.get("generatedAt"))
+          meta["generatedAtLocal"] = entry.get("createdAtLocal", meta.get("generatedAtLocal"))
+          meta["nodes"] = entry.get("nodes", meta.get("nodes"))
+          meta["healthy"] = entry.get("healthy", meta.get("healthy"))
+          json.dump(meta, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+          open(path, "a", encoding="utf-8").write("\n")
+          print("meta.json 已更新:", version)
+          PY
+
+      - name: 提交回滚
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add configs/warp-masque.yaml configs/meta.json configs/history
+          if git diff --cached --quiet; then
+            echo "内容一致，无需提交"
+          else
+            git commit -m "chore: rollback WARP subscription to ${{ inputs.version }} [skip ci]"
+            git push
+          fi

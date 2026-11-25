@@ -1,7 +1,9 @@
 window.MASQUE_TEMPLATE = `# Warp-Masque free · GitHub Actions 自动生成的 MASQUE 配置
 # 生成时间: __TIME__
 # 版本: __VERSION__
-# 提示：请保持 Mihomo/Clash.Meta 内核为最新版；本配置含私钥，请勿公开分享
+# 节点顺序: 已按 Actions 测速结果从快到慢排列（每个节点上方标注延迟）
+# 内核要求: Mihomo Alpha >= 1.19.0-alpha，稳定版会报 unknown proxy type
+# 提示：本配置含私钥，请勿公开分享
 
 mode: rule
 allow-lan: false
