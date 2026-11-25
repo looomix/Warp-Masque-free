@@ -11,18 +11,18 @@
 | 版本回滚 | 保留最近 N 份快照，页面可查看/下载，`rollback.yml` 一键回滚 |
 | 多格式导出 | Clash YAML、sing-box JSON、WireGuard `.conf`、`masque://` 链接 |
 | 连通性自检 | Runner 测速报告 + 浏览器实测，失败给出端口 / SNI / 内核版本提示 |
-| 定时更新 | 每 6 小时自动重新注册，页面显示上次生成与下次更新时间 |
+| 手动触发 | 手动运行 Actions 生成，页面显示上次生成时间与节点状态 |
 | 一键清空 | 清空账号 JSON 与订阅地址，并记住状态，下次打开保持空白 |
 
 ## 使用
 
 1. 打开 Actions 中的 `generate-warp.yml`，点 **Run workflow**。
 2. 可设设备名、是否测速、延迟阈值、快照数量、`commit` 与 artifact 保留天数。
-   `commit` 默认关闭，仅显式开启或定时触发时提交含私钥的配置。
+   `commit` 默认关闭，勾选后才会把含私钥的配置提交到仓库（页面订阅随之更新）。
 3. 工作流依次完成：下载 `usque` 并注册设备 → 测速筛选端点 → `scripts/generate.py` 生成订阅/多格式配置/`health.json`/`meta.json`/快照 → `scripts/validate.py` 校验 → 上传 artifact，按需提交回仓库。
 4. 订阅地址在站点页面查看。
 
-定时任务：`cron: 0 */6 * * *`（UTC，北京时间 02/08/14/20 点），以 `commit=true` 自动发布。
+仅手动触发，无定时任务。
 
 ## 清空行为
 
@@ -52,12 +52,12 @@ assets/app.js                         本地转换、清空记忆、自检、版
 assets/template.js                    Clash YAML 模板
 scripts/generate.py                   测速 + 多格式生成 + 快照 + meta
 scripts/validate.py                   订阅结构校验
-.github/workflows/generate-warp.yml   生成工作流（含定时）
+.github/workflows/generate-warp.yml   生成工作流
 .github/workflows/rollback.yml        版本回滚
 .github/workflows/pages-health.yml    Pages 健康检查
 configs/warp-masque.yaml              当前订阅
 configs/usque-config.json             原始账号
-configs/meta.json                     生成时间 / 下次更新 / 节点统计
+configs/meta.json                     生成时间 / 节点统计
 configs/health.json                   端点测速报告
 configs/history/                      历史快照与 index.json
 LICENSE / NOTICE                      许可与出处

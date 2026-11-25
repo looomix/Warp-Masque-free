@@ -1,9 +1,6 @@
 name: 生成 WARP MASQUE 配置
 
 on:
-  schedule:
-    # 定时自动注册并发布（UTC 每 12 小时；北京时间 02/08/14/20 点）
-    - cron: '0 */12 * * *'
   workflow_dispatch:
     inputs:
       device_name:
@@ -11,7 +8,7 @@ on:
         required: false
         default: gh-actions
       commit:
-        description: 警告：开启会把含私钥的 YAML/JSON 提交到公开仓库
+        description: 手动勾选：把含私钥的 YAML/JSON 提交到仓库（页面订阅才会更新）
         type: boolean
         required: false
         default: false
@@ -87,7 +84,7 @@ jobs:
           KEEP: ${{ inputs.keep_versions || '10' }}
         run: |
           set -euo pipefail
-          ARGS=(--history-dir configs/history --keep "${KEEP}" --max-latency "${MAX_LATENCY}" --cron '0 */6 * * *')
+          ARGS=(--history-dir configs/history --keep "${KEEP}" --max-latency "${MAX_LATENCY}")
           if [ "${PROBE:-true}" = "false" ]; then ARGS+=(--no-probe); fi
           python3 scripts/generate.py config.json dist "${ARGS[@]}"
           mkdir -p configs
@@ -124,8 +121,8 @@ jobs:
               print("::warning::本次没有端点通过测速，订阅已按全量端点发布，请检查 Runner 出口或端口放行")
           PY
 
-      - name: 提交订阅配置（定时任务默认提交）
-        if: ${{ inputs.commit || github.event_name == 'schedule' }}
+      - name: 提交订阅配置（需勾选 commit）
+        if: ${{ inputs.commit }}
         shell: bash
         run: |
           set -euo pipefail

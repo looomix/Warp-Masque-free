@@ -21,7 +21,7 @@
 @media(max-width:600px){.field-grid,.grid-3{grid-template-columns:1fr}.result-head,.actions{flex-direction:column;align-items:flex-start}.footer .wrap{flex-direction:column;align-items:flex-start}.footer span:last-child{margin-left:0}}
 
 /* ---- 状态栏 / 自检 / 版本列表（v3.1 新增） ---- */
-.statusbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:26px}
+.statusbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:26px}
 .stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .stat span{color:var(--muted);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase}
 .stat b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

@@ -11,7 +11,7 @@ Outputs (inside <outdir>):
     warp-masque-links.txt       masque:// share links (Shadowrocket style)
     warp-masque-shadowrocket.txt  same links, legacy file name
     health.json                 per-endpoint reachability probe report
-    meta.json                   generation metadata (time / cron / stats)
+    meta.json                   generation metadata (time / stats)
 
 Optional: `--history-dir configs/history --keep 10` keeps timestamped
 snapshots plus an `index.json` so the web page can list / roll back versions.
@@ -35,7 +35,6 @@ SNI = "www.cloudflareaccess.com"
 RS = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite"
 TEST_URL = "https://cloudflare.com/cdn-cgi/trace"
 WARP_PEER = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
-DEFAULT_CRON = "0 */6 * * *"
 KERNEL_HINT = "masque 出站需要 Mihomo Alpha 内核（>= 1.19.0-alpha）；稳定版会报 unknown proxy type"
 BEIJING = timezone(timedelta(hours=8))
 
@@ -339,41 +338,6 @@ def write_history(history_dir, yaml_text, summary, keep):
     return version
 
 
-# --------------------------------------------------------------------- cron ---
-
-def _cron_match(field, value, low, high):
-    for part in field.split(","):
-        if part == "*":
-            return True
-        if part.startswith("*/"):
-            step = int(part[2:] or 1)
-            if (value - low) % step == 0:
-                return True
-        elif "-" in part:
-            start, end = part.split("-", 1)
-            if int(start) <= value <= int(end):
-                return True
-        elif part.isdigit() and int(part) == value:
-            return True
-    return False
-
-
-def next_run(cron, now=None):
-    now = (now or datetime.now(timezone.utc)).replace(second=0, microsecond=0) + timedelta(minutes=1)
-    fields = cron.split()
-    if len(fields) != 5:
-        return None
-    for _ in range(60 * 24 * 8):
-        if (_cron_match(fields[0], now.minute, 0, 59)
-                and _cron_match(fields[1], now.hour, 0, 23)
-                and _cron_match(fields[2], now.day, 1, 31)
-                and _cron_match(fields[3], now.month, 1, 12)
-                and _cron_match(fields[4], (now.weekday() + 1) % 7, 0, 6)):
-            return now
-        now += timedelta(minutes=1)
-    return None
-
-
 # --------------------------------------------------------------------- main ---
 
 def main():
@@ -386,7 +350,6 @@ def main():
     parser.add_argument("--top", type=int, default=0, help="只保留最快的前 N 个节点（0 = 不限制）")
     parser.add_argument("--history-dir", default="", help="配置快照目录，例如 configs/history")
     parser.add_argument("--keep", type=int, default=10, help="保留最近 N 份快照")
-    parser.add_argument("--cron", default=DEFAULT_CRON, help="定时更新 cron，用于计算下次更新时间")
     args = parser.parse_args()
 
     config = load(args.config)
@@ -558,12 +521,9 @@ rules:
         handle.write("\n")
 
     now = datetime.now(timezone.utc)
-    upcoming = next_run(args.cron, now)
     meta = {
         "generatedAt": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generatedAtLocal": local_stamp(),
-        "cron": args.cron,
-        "nextRunAt": upcoming.strftime("%Y-%m-%dT%H:%M:%SZ") if upcoming else None,
         "nodes": len(selected),
         "healthy": health.get("healthy", 0),
         "dropped": health.get("dropped", 0),
@@ -590,7 +550,10 @@ rules:
     if not args.no_probe:
         print(f"健康节点 {health.get('healthy', 0)}/{health.get('total', 0)}，"
               f"最优 {best[0]}:{best[1]} {best_latency}ms")
-    print("输出: warp-masque.yaml / .conf / -singbox.json / -links.txt / health.json / meta.json")
+    produced = ["warp-masque.yaml", "warp-masque-links.txt", "health.json", "meta.json"]
+    if exports.get("wireguard"):
+        produced += ["warp-masque.conf", "warp-masque-singbox.json"]
+    print("输出: " + " / ".join(produced))
 
 
 if __name__ == "__main__":

@@ -490,48 +490,23 @@
 
   /* --------------------------------------------------------------- 状态栏 --- */
 
-  function cronText(cron) {
-    if (!cron) return "—";
-    const parts = cron.trim().split(/\s+/);
-    if (parts.length !== 5) return cron;
-    const hour = parts[1];
-    if (hour.startsWith("*/")) return `每 ${hour.slice(2)} 小时`;
-    if (hour === "*") return "每小时";
-    return `每天 ${String(hour).padStart(2, "0")}:${String(parts[0]).padStart(2, "0")} (UTC)`;
-  }
-
-  function tickCountdown() {
-    const el = $("#statCountdown");
-    const next = state.meta && state.meta.nextRunAt ? new Date(state.meta.nextRunAt).getTime() : NaN;
-    if (Number.isNaN(next)) {
-      el.textContent = "—";
-      return;
-    }
-    const diff = next - Date.now();
-    if (diff <= 0) {
-      el.textContent = "即将触发";
-      return;
-    }
-    const hours = Math.floor(diff / 3.6e6);
-    const minutes = Math.floor((diff % 3.6e6) / 6e4);
-    el.textContent = `${hours} 小时 ${minutes} 分后`;
-  }
-
   function renderMeta() {
     const meta = state.meta;
     if (!meta) {
       $("#statLast").textContent = "未读取到 meta.json";
-      $("#statNext").textContent = "运行一次 Actions 后可见";
+      $("#statNodes").textContent = "运行一次 Actions 后可见";
+      $("#statBest").textContent = "—";
       return;
     }
     const lastText = fmtLocal(meta.generatedAt) || meta.generatedAtLocal || "—";
     $("#statLast").textContent = meta.rolledBackTo
       ? `${lastText}（回滚至 ${meta.rolledBackTo}）`
       : lastText;
-    $("#statNext").textContent = meta.nextRunAt ? fmtLocal(meta.nextRunAt) : "未设置定时";
     $("#statNodes").textContent = `${meta.nodes ?? "—"} / ${meta.probed ? (meta.healthy ?? 0) : "未测速"}`;
-    $("#statCron").textContent = cronText(meta.cron);
-    tickCountdown();
+    const best = meta.bestEndpoint && meta.bestEndpoint.latencyMs;
+    $("#statBest").textContent = best != null
+      ? `${best} ms · ${meta.bestEndpoint.port}`
+      : "—";
   }
 
   async function loadMeta() {
@@ -855,7 +830,6 @@
 
     bindEvents();
     setInterval(enforceAutoClear, 2000);
-    setInterval(tickCountdown, 30000);
 
     loadMeta();
     loadHealth();

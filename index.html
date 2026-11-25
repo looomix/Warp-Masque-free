@@ -23,14 +23,12 @@
         <h1>Cloudflare WARP<br /><span>配置生成器</span></h1>
         <p class="lead">通过 GitHub Actions 在云端注册 WARP 设备，自动测速优选端点，生成 Clash / Mihomo 的 MASQUE YAML、sing-box、WireGuard .conf 与订阅链接。无需服务器，无需 Cloudflare Worker。</p>
         <div class="hero-actions"><a class="btn btn-primary" href="#generator">开始生成</a><a class="btn btn-secondary" href="#health">运行自检</a></div>
-        <div class="chips"><span>测速优选</span><span>版本回滚</span><span>多客户端导出</span><span>定时自动更新</span></div>
+        <div class="chips"><span>测速优选</span><span>版本回滚</span><span>多客户端导出</span><span>手动生成</span></div>
 
         <div class="statusbar" id="statusbar">
           <div class="stat"><span>上次生成</span><b id="statLast">读取中…</b></div>
-          <div class="stat"><span>下次更新</span><b id="statNext">读取中…</b></div>
           <div class="stat"><span>节点 / 健康</span><b id="statNodes">—</b></div>
-          <div class="stat"><span>定时策略</span><b id="statCron">—</b></div>
-          <div class="stat"><span>倒计时</span><b id="statCountdown">—</b></div>
+          <div class="stat"><span>最优延迟</span><b id="statBest">—</b></div>
         </div>
       </section>
 
