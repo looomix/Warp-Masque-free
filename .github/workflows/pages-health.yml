@@ -1,0 +1,69 @@
+name: Pages 健康检查
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检查站点状态
+        id: probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://looomix.github.io/Warp-Masque-free/?t=$(date +%s)"
+          CODE=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 20 "$URL" || true)
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "站点状态码: $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "needs_recovery=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs_recovery=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 尝试恢复 Pages
+        if: steps.probe.outputs.needs_recovery == 'true'
+        shell: bash
+        env:
+          PAGES_TOKEN: ${{ secrets.PAGES_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+          REPO="looomix/Warp-Masque-free"
+          API="https://api.github.com/repos/$REPO"
+          CODE=$(curl -s -o /tmp/pages.json -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer $PAGES_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            -d '{"source":{"branch":"main","path":"/"}}' \
+            "$API/pages" || true)
+          echo "启用 Pages 返回: $CODE"
+          cat /tmp/pages.json || true
+          # 422 表示站点已存在；404/403 通常由权限或套餐限制导致
+          if [ "$CODE" != "201" ] && [ "$CODE" != "204" ] && [ "$CODE" != "422" ]; then
+            echo "::warning::未能通过 API 启用 Pages，请检查仓库可见性与 Token 权限"
+          fi
+          curl -s -X POST \
+            -H "Authorization: Bearer $PAGES_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$API/pages/builds" > /tmp/build.json || true
+          cat /tmp/build.json || true
+
+      - name: 复查站点
+        if: steps.probe.outputs.needs_recovery == 'true'
+        shell: bash
+        run: |
+          sleep 45
+          CODE=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 20 "https://looomix.github.io/Warp-Masque-free/?t=$(date +%s)" || true)
+          echo "复查状态码: $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Pages 仍未恢复，请到仓库 Settings → Pages 手动检查"
+            exit 1
+          fi
