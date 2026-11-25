@@ -11,7 +11,7 @@ from datetime import datetime
 
 V4 = ["162.159.198.2", "162.159.199.2"]
 V6 = ["2606:4700:103::2", "2606:4700:104::2"]
-PORTS = (443, 500, 1701, 4500)
+PORTS = (443, 4443, 8443, 8095)
 SNI = "www.cloudflareaccess.com"
 RS = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite"
 
@@ -75,6 +75,7 @@ def main():
             "    udp: true\n"
             "    remote-dns-resolve: true\n"
             "    congestion-controller: bbr\n"
+            "    dns: [ 1.1.1.1, 8.8.8.8 ]\n"
             "    sni: %s" % (name, server, port, private_key, public_key, ipv4, ipv6_line, SNI)
         )
         params = "&".join([
