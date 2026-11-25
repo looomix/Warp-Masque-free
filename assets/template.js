@@ -4,7 +4,7 @@ window.MASQUE_TEMPLATE = `# Warp-Masque free · GitHub Actions 自动生成的 M
 # 提示：请保持 Mihomo/Clash.Meta 内核为最新版；本配置含私钥，请勿公开分享
 
 mode: rule
-allow-lan: true
+allow-lan: false
 mixed-port: 7890
 bind-address: '*'
 ipv6: __IPV6__
