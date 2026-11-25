@@ -13,6 +13,7 @@
   const state = { account: null, canonicalYaml: "", manualOverride: false, outputs: { conf: "", yaml: "", sub: "" }, tab: "yaml" };
   const CLEAR_DELAY = 60_000;
   let clearTimer = null;
+  let clearDeadline = 0;
 
   function toast(message) {
     const el = $("#toast");
@@ -28,9 +29,10 @@
     el.style.color = error ? "#fda4af" : "";
   }
 
-  function clearGeneratedContent() {
+  function clearGeneratedContent(manual = false) {
     clearTimeout(clearTimer);
     clearTimer = null;
+    clearDeadline = 0;
     state.account = null;
     state.canonicalYaml = "";
     state.manualOverride = false;
@@ -38,12 +40,17 @@
     $("#accountText").value = "";
     $("#result").hidden = true;
     $("#output").textContent = "";
-    status("页面敏感内容已自动清空。需要时请重新生成或刷新订阅。");
+    status(manual ? "已手动清空生成信息。需要时请重新生成或刷新订阅。" : "页面敏感内容已自动清空。需要时请重新生成或刷新订阅。");
   }
 
   function scheduleAutoClear() {
     clearTimeout(clearTimer);
-    clearTimer = setTimeout(clearGeneratedContent, CLEAR_DELAY);
+    clearDeadline = Date.now() + CLEAR_DELAY;
+    clearTimer = setTimeout(() => clearGeneratedContent(), CLEAR_DELAY);
+  }
+
+  function enforceAutoClear() {
+    if (clearDeadline && Date.now() >= clearDeadline) clearGeneratedContent();
   }
 
   function i1Payload() {
@@ -236,6 +243,10 @@
       }
     });
     $("#reloadSub").addEventListener("click", () => loadPublishedConfig(true));
+    $("#clearNow").addEventListener("click", () => {
+      clearGeneratedContent(true);
+      toast("生成信息已清空");
+    });
     $("#copyRemote").addEventListener("click", () => copyText(SUB_URL, "订阅地址已复制"));
     $("#copyMirror").addEventListener("click", () => copyText(MIRROR_URL, "镜像地址已复制"));
     $("#copyImport").addEventListener("click", () => copyText(IMPORT_URL, "导入链接已复制"));
@@ -304,5 +315,9 @@
   }
 
   bindEvents();
+  setInterval(enforceAutoClear, 2000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) enforceAutoClear();
+  });
   loadPublishedConfig();
 })();
