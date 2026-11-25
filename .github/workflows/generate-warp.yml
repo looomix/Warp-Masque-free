@@ -2,8 +2,8 @@ name: 生成 WARP MASQUE 配置
 
 on:
   schedule:
-    # 定时自动注册并发布（UTC 每 6 小时；北京时间 02/08/14/20 点）
-    - cron: '0 */6 * * *'
+    # 定时自动注册并发布（UTC 每 12 小时；北京时间 02/08/14/20 点）
+    - cron: '0 */12 * * *'
   workflow_dispatch:
     inputs:
       device_name:
