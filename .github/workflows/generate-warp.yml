@@ -8,10 +8,10 @@ on:
         required: false
         default: gh-actions
       commit:
-        description: 是否把 YAML 提交到仓库供 GitHub Pages 订阅使用
+        description: 警告：开启会把含私钥的 YAML/JSON 提交到公开仓库
         type: boolean
         required: false
-        default: true
+        default: false
       retention_days:
         description: artifact 保留天数
         required: false
@@ -23,25 +23,33 @@ permissions:
 jobs:
   generate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - name: 检出仓库
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - name: 下载 usque
+      - name: 下载 usque（带重试）
         shell: bash
         run: |
           set -euo pipefail
-          VER=$(curl -sL -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github+json" https://api.github.com/repos/Diniboy1123/usque/releases/latest | jq -r '.tag_name // empty' | sed 's/^v//')
+          VER=$(curl -fsSL --retry 3 -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github+json" https://api.github.com/repos/Diniboy1123/usque/releases/latest | jq -r '.tag_name // empty' | sed 's/^v//')
           if [ -z "$VER" ]; then VER=4.2.1; fi
           echo "usque 版本 $VER"
-          curl -sL -o usque.zip "https://github.com/Diniboy1123/usque/releases/download/v${VER}/usque_${VER}_linux_amd64.zip"
+          for i in 1 2 3; do
+            if curl -fsSL --retry 3 -o usque.zip "https://github.com/Diniboy1123/usque/releases/download/v${VER}/usque_${VER}_linux_amd64.zip"; then break; fi
+            sleep 5
+          done
+          test -s usque.zip
           unzip -oq usque.zip
           chmod +x usque
 
       - name: 注册 WARP 设备
         shell: bash
+        env:
+          DEVICE_NAME: ${{ inputs.device_name || 'gh-actions' }}
         run: |
           set -euo pipefail
-          ./usque register -a -n "${{ inputs.device_name || 'gh-actions' }}"
+          ./usque register -a -n "$DEVICE_NAME"
           test -s config.json
           python3 - <<'PY'
           import json
@@ -63,11 +71,19 @@ jobs:
           test -s dist/warp-masque.yaml
           test -s dist/warp-masque-shadowrocket.txt
 
-      - name: 提交订阅配置供 Pages 托管
+      - name: 校验订阅配置
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pyyaml
+          python3 scripts/validate.py dist/warp-masque.yaml
+
+      - name: 提交订阅配置（需显式开启）
         if: ${{ inputs.commit }}
         shell: bash
         run: |
           set -euo pipefail
+          echo "警告：本次提交包含 WARP 私钥，请勿公开转发订阅"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add configs/warp-masque.yaml configs/usque-config.json
@@ -79,7 +95,7 @@ jobs:
           fi
 
       - name: 上传 artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: warp-masque-config
           path: dist/
