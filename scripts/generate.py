@@ -1,24 +1,16 @@
 #!/usr/bin/env python3
-"""Convert a usque `config.json` into WARP / MASQUE subscription artifacts.
+"""Convert a usque `config.json` into a WARP / MASQUE subscription.
 
 Usage:
     python3 scripts/generate.py <config.json> <outdir> [options]
 
 Outputs (inside <outdir>):
-    warp-masque.yaml            Mihomo / Clash.Meta MASQUE subscription
-    warp-masque.conf            Standard WireGuard .conf (WARP peer)
-    warp-masque-singbox.json    sing-box outbound config
-    warp-masque-links.txt       masque:// share links (Shadowrocket style)
-    warp-masque-shadowrocket.txt  same links, legacy file name
-    health.json                 per-endpoint reachability probe report
-    meta.json                   generation metadata (time / stats)
-
-Optional: `--history-dir configs/history --keep 10` keeps timestamped
-snapshots plus an `index.json` so the web page can list / roll back versions.
+    warp-masque.yaml    Mihomo / Clash.Meta MASQUE subscription
+    warp-masque-links.txt   masque:// share links
+    health.json         per-endpoint reachability probe report
+    meta.json           generation metadata (time / stats)
 """
 import argparse
-import base64
-import binascii
 import json
 import os
 import socket
@@ -38,7 +30,6 @@ QUIC_PROBE_VERSION = b"\x00\x00\x00\x02"  # 不支持的版本号，用于套出
 SNI = "www.cloudflareaccess.com"
 RS = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite"
 TEST_URL = "https://cloudflare.com/cdn-cgi/trace"
-WARP_PEER = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
 KERNEL_HINT = "masque 出站需要 Mihomo Alpha 内核（>= 1.19.0-alpha）；稳定版会报 unknown proxy type"
 BEIJING = timezone(timedelta(hours=8))
 
@@ -53,19 +44,6 @@ def pem_body(value):
         line for line in str(value or "").splitlines()
         if not line.startswith("-----")
     ).replace(" ", "")
-
-
-def x25519_key(value):
-    """usque/WARP MASQUE 账号用的是 EC P-256 密钥（PKCS#8），
-    而标准 WireGuard / sing-box 需要 32 字节 X25519 私钥。
-    只有能解出 32 字节时才返回该 base64 字符串，否则返回 None。
-    """
-    text = str(value or "").strip()
-    try:
-        raw = base64.b64decode(text, validate=True)
-    except (binascii.Error, ValueError):
-        return None
-    return text if len(raw) == 32 else None
 
 
 def load(path):
@@ -289,171 +267,16 @@ def masque_link(name, server, port, private_key, public_key, ipv4):
     return f"masque://{host}:{port}?{params}#{urllib.parse.quote(name)}"
 
 
-def build_conf(private_key, ipv4, ipv6, server, port=2408):
-    address = f"{ipv4}/32" + (f", {ipv6}/128" if ipv6 else "")
-    allowed = "0.0.0.0/0" + (", ::/0" if ipv6 else "")
-    return f"""# Cloudflare WARP · 标准 WireGuard 配置（由 Warp-Masque free 生成）
-# 生成时间: {local_stamp()}
-# 客户端: WireGuard 官方客户端 / wg-quick；AWG 伪装参数请在页面生成
-[Interface]
-PrivateKey = {private_key}
-Address = {address}
-DNS = 1.1.1.1, 1.0.0.1
-MTU = 1280
-
-[Peer]
-PublicKey = {WARP_PEER}
-AllowedIPs = {allowed}
-Endpoint = {server}:{port}
-PersistentKeepalive = 25
-"""
-
-
-def build_singbox(private_key, ipv4, ipv6, nodes, latency_map):
-    """sing-box 1.13+ 结构：WireGuard 已改为 endpoints[]，不再是 outbound。"""
-    local = [f"{ipv4}/32"] + ([f"{ipv6}/128"] if ipv6 else [])
-    allowed = ["0.0.0.0/0"] + (["::/0"] if ipv6 else [])
-    endpoints = []
-    names = []
-    for server, port in nodes:
-        name = f"WARP | {server} | {port}"
-        names.append(name)
-        latency = latency_map.get((server, port))
-        endpoint = {
-            "type": "wireguard",
-            "tag": name,
-            "system": False,
-            "mtu": 1280,
-            "address": local,
-            "private_key": private_key,
-            "udp_timeout": "5m",
-            "peers": [{
-                "address": server,
-                "port": port,
-                "public_key": WARP_PEER,
-                "allowed_ips": allowed,
-                "persistent_keepalive_interval": 25,
-            }],
-        }
-        if latency:
-            endpoint["_note"] = f"Action 侧测得 {latency}ms；sing-box 无 masque 出站，此处用 WireGuard 接入 WARP"
-        endpoints.append(endpoint)
-    outbounds = [
-        {"type": "selector", "tag": "节点选择",
-         "outbounds": ["自动选择", "手动切换", "direct"], "default": "自动选择"},
-        {"type": "urltest", "tag": "自动选择", "outbounds": names,
-         "url": TEST_URL, "interval": "5m", "tolerance": 50, "idle_timeout": "30m"},
-        {"type": "selector", "tag": "手动切换", "outbounds": names, "default": names[0]},
-        {"type": "direct", "tag": "direct"},
-    ]
-    return json.dumps({
-        "_comment": "由 Warp-Masque free 生成；含私钥，请当作凭据保管；需要 sing-box >= 1.13",
-        "_generatedAt": local_stamp(),
-        "log": {"level": "info", "timestamp": True},
-        "dns": {
-            "servers": [
-                {"tag": "proxy-dns", "address": "https://1.1.1.1/dns-query", "detour": "节点选择"},
-                {"tag": "local-dns", "address": "223.5.5.5", "detour": "direct"},
-            ],
-            "rules": [{"rule_set": "geosite-cn", "server": "local-dns"}],
-            "final": "proxy-dns",
-        },
-        "inbounds": [{"type": "mixed", "tag": "mixed-in", "listen": "127.0.0.1", "listen_port": 7890}],
-        "endpoints": endpoints,
-        "outbounds": outbounds,
-        "route": {
-            "rules": [{"rule_set": "geosite-cn", "outbound": "direct"}],
-            "rule_set": [{
-                "tag": "geosite-cn", "type": "remote", "format": "binary",
-                "url": f"{RS}/cn.mrs", "download_detour": "direct",
-            }],
-            "final": "节点选择",
-            "auto_detect_interface": True,
-        },
-    }, ensure_ascii=False, indent=2) + "\n"
-
-
-# ------------------------------------------------------------------ history ---
-
-def write_history(history_dir, yaml_text, links_text, account_text, summary, keep):
-    """一份快照存三个文件：订阅 YAML、masque 链接、对应账号 JSON。
-
-    回滚时三者一起还原，避免出现「订阅还是旧账号、页面却显示新账号」的错配。
-    """
-    os.makedirs(history_dir, exist_ok=True)
-    stamp = datetime.now(BEIJING).strftime("%Y%m%d-%H%M%S")
-    version = stamp
-    suffix = 1
-    while os.path.exists(os.path.join(history_dir, f"warp-masque-{version}.yaml")):
-        suffix += 1
-        version = f"{stamp}-{suffix}"
-    files = {
-        "yaml": f"warp-masque-{version}.yaml",
-        "links": f"warp-masque-{version}.txt",
-        "account": f"warp-masque-{version}.json",
-    }
-    with open(os.path.join(history_dir, files["yaml"]), "w", encoding="utf-8") as handle:
-        handle.write(yaml_text)
-    with open(os.path.join(history_dir, files["links"]), "w", encoding="utf-8") as handle:
-        handle.write(links_text)
-    with open(os.path.join(history_dir, files["account"]), "w", encoding="utf-8") as handle:
-        handle.write(account_text)
-
-    index_path = os.path.join(history_dir, "index.json")
-    try:
-        with open(index_path, "r", encoding="utf-8") as handle:
-            index = json.load(handle)
-        if not isinstance(index, dict):
-            index = {}
-    except (OSError, json.JSONDecodeError):
-        index = {}
-    versions = index.get("versions") or []
-    versions.insert(0, {
-        "version": version,
-        "file": files["yaml"],
-        "links": files["links"],
-        "account": files["account"],
-        "createdAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "createdAtLocal": local_stamp(),
-        **summary,
-    })
-    versions = versions[:keep]
-    index = {"updatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-             "keep": keep, "versions": versions}
-    with open(index_path, "w", encoding="utf-8") as handle:
-        json.dump(index, handle, ensure_ascii=False, indent=2)
-        handle.write("\n")
-
-    # 清理落出索引的快照（yaml / txt / json 一起）
-    alive = set()
-    for item in versions:
-        for key in ("file", "links", "account"):
-            if item.get(key):
-                alive.add(item[key])
-    for name in os.listdir(history_dir):
-        if not name.startswith("warp-masque-") or not name.endswith((".yaml", ".txt", ".json")):
-            continue
-        if name in alive:
-            continue
-        try:
-            os.remove(os.path.join(history_dir, name))
-        except OSError:
-            pass
-    return version
-
-
 # --------------------------------------------------------------------- main ---
 
 def main():
-    parser = argparse.ArgumentParser(description="生成 WARP MASQUE 订阅与多客户端配置")
+    parser = argparse.ArgumentParser(description="生成 WARP MASQUE 订阅与 masque:// 分享链接")
     parser.add_argument("config", help="usque config.json")
     parser.add_argument("outdir", help="输出目录")
     parser.add_argument("--no-probe", action="store_true", help="跳过端点测速")
     parser.add_argument("--max-latency", type=int, default=1200, help="延迟阈值（毫秒）")
     parser.add_argument("--timeout", type=float, default=1.6, help="单次 QUIC 探测超时（秒），每个端点最多试 3 次")
     parser.add_argument("--top", type=int, default=0, help="只保留最快的前 N 个节点（0 = 不限制）")
-    parser.add_argument("--history-dir", default="", help="配置快照目录，例如 configs/history")
-    parser.add_argument("--keep", type=int, default=10, help="保留最近 N 份快照")
     args = parser.parse_args()
 
     config = load(args.config)
@@ -614,27 +437,8 @@ rules:
     with open(os.path.join(outdir, "warp-masque.yaml"), "w", encoding="utf-8") as handle:
         handle.write(yaml)
     links_text = "\n".join(links) + "\n"
-    for name in ("warp-masque-links.txt", "warp-masque-shadowrocket.txt"):
-        with open(os.path.join(outdir, name), "w", encoding="utf-8") as handle:
-            handle.write(links_text)
-
-    # 标准 WireGuard / sing-box 需要 X25519 密钥；usque 的 MASQUE 账号是 EC P-256，
-    # 此时不写出无法使用的配置，只在 meta 里标注原因，页面会给出说明。
-    wg_key = x25519_key(private_key)
-    exports = {"clash": True, "links": True, "wireguard": False, "singbox": False}
-    blocked_reason = ""
-    if wg_key:
-        with open(os.path.join(outdir, "warp-masque.conf"), "w", encoding="utf-8") as handle:
-            handle.write(build_conf(wg_key, ipv4, ipv6, best[0]))
-        with open(os.path.join(outdir, "warp-masque-singbox.json"), "w", encoding="utf-8") as handle:
-            handle.write(build_singbox(wg_key, ipv4, ipv6, selected, latency_map))
-        exports["wireguard"] = True
-        exports["singbox"] = True
-    else:
-        blocked_reason = ("当前账号是 MASQUE（EC P-256）密钥，标准 WireGuard .conf / sing-box "
-                          "需要 32 字节 X25519 私钥，无法直接转换；如需 .conf 请用 wgcf 注册一个 WARP 账号，"
-                          "或继续使用 Clash / MASQUE 订阅。")
-        exports["reason"] = blocked_reason
+    with open(os.path.join(outdir, "warp-masque-links.txt"), "w", encoding="utf-8") as handle:
+        handle.write(links_text)
 
     with open(os.path.join(outdir, "health.json"), "w", encoding="utf-8") as handle:
         json.dump(health, handle, ensure_ascii=False, indent=2)
@@ -651,23 +455,7 @@ rules:
         "probed": not args.no_probe,
         "bestEndpoint": {"server": best[0], "port": best[1], "latencyMs": best_latency},
         "kernel": KERNEL_HINT,
-        "formats": [k for k, v in exports.items() if v is True],
-        "blockedFormatReason": blocked_reason,
     }
-
-    # 快照必须在写 meta.json 之前，否则 version 字段写不进 meta
-    if args.history_dir:
-        summary = {
-            "nodes": len(selected),
-            "verified": health.get("verified", 0),
-            "bestLatencyMs": best_latency,
-            "bestEndpoint": f"{best[0]}:{best[1]}",
-        }
-        meta["version"] = write_history(
-            args.history_dir, yaml, links_text,
-            json.dumps(config, ensure_ascii=False, indent=2) + "\n",
-            summary, max(1, args.keep),
-        )
 
     with open(os.path.join(outdir, "meta.json"), "w", encoding="utf-8") as handle:
         json.dump(meta, handle, ensure_ascii=False, indent=2)
@@ -677,10 +465,7 @@ rules:
     if not args.no_probe:
         print(f"已验证 {health.get('verified', 0)}/{health.get('total', 0)}，"
               f"未验证 {health.get('unverified', 0)}，最优 {best[0]}:{best[1]} {best_latency}ms")
-    produced = ["warp-masque.yaml", "warp-masque-links.txt", "health.json", "meta.json"]
-    if exports.get("wireguard"):
-        produced += ["warp-masque.conf", "warp-masque-singbox.json"]
-    print("输出: " + " / ".join(produced))
+    print("输出: warp-masque.yaml / warp-masque-links.txt / health.json / meta.json")
 
 
 if __name__ == "__main__":

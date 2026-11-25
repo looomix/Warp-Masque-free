@@ -21,10 +21,6 @@ on:
         description: 延迟阈值（毫秒），超过的端点不写入订阅
         required: false
         default: '1200'
-      keep_versions:
-        description: 保留最近 N 份配置快照（用于页面回滚）
-        required: false
-        default: '10'
       retention_days:
         description: artifact 保留天数
         required: false
@@ -76,23 +72,22 @@ jobs:
           print('ipv6 =', c.get('ipv6'))
           PY
 
-      - name: 测速 + 生成多客户端配置
+      - name: 测速 + 生成订阅
         shell: bash
         env:
           PROBE: ${{ inputs.probe }}
           MAX_LATENCY: ${{ inputs.max_latency || '1200' }}
-          KEEP: ${{ inputs.keep_versions || '10' }}
         run: |
           set -euo pipefail
-          ARGS=(--history-dir configs/history --keep "${KEEP}" --max-latency "${MAX_LATENCY}")
+          ARGS=(--max-latency "${MAX_LATENCY}")
           if [ "${PROBE:-true}" = "false" ]; then ARGS+=(--no-probe); fi
           python3 scripts/generate.py config.json dist "${ARGS[@]}"
           mkdir -p configs
           cp dist/warp-masque.yaml configs/warp-masque.yaml
           cp config.json configs/usque-config.json
           cp config.json dist/usque-config.json
-          for extra in warp-masque.conf warp-masque-singbox.json warp-masque-links.txt warp-masque-shadowrocket.txt health.json meta.json; do
-            if [ -f "dist/$extra" ]; then cp "dist/$extra" "configs/$extra"; fi
+          for extra in warp-masque-links.txt health.json meta.json; do
+            cp "dist/$extra" "configs/$extra"
           done
           test -s dist/warp-masque.yaml
           test -s dist/warp-masque-links.txt
@@ -133,12 +128,8 @@ jobs:
           echo "警告：本次提交包含 WARP 私钥，请勿公开转发订阅"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add configs/warp-masque.yaml configs/usque-config.json configs/history \
-                  configs/health.json configs/meta.json
-          for extra in configs/warp-masque.conf configs/warp-masque-singbox.json \
-                       configs/warp-masque-links.txt configs/warp-masque-shadowrocket.txt; do
-            if [ -f "$extra" ]; then git add "$extra"; fi
-          done
+          git add configs/warp-masque.yaml configs/usque-config.json \
+                  configs/warp-masque-links.txt configs/health.json configs/meta.json
           if git diff --cached --quiet; then
             echo "配置无变化，无需提交"
           else

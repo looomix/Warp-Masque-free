@@ -24,10 +24,8 @@
   const MIRROR_URL = `https://gh-proxy.com/${RAW_BASE}/configs/warp-masque.yaml`;
   const IMPORT_URL = `clash://install-config?url=${encodeURIComponent(MIRROR_URL)}`;
   const ACTIONS_URL = `https://github.com/${REPO.owner}/${REPO.repo}/actions/workflows/generate-warp.yml`;
-  const ROLLBACK_URL = `https://github.com/${REPO.owner}/${REPO.repo}/actions/workflows/rollback.yml`;
   const REPO_URL = `https://github.com/${REPO.owner}/${REPO.repo}`;
 
-  const WARP_PEER = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=";
   const TRACE_URL = "https://cloudflare.com/cdn-cgi/trace";
   const AUTO_CLEAR_MS = 60_000;
   const KERNEL_HINT = "MASQUE 出站需要 Mihomo Alpha 内核（>= 1.19.0-alpha），稳定版会报 unknown proxy type";
@@ -39,19 +37,15 @@
     account: null,
     canonicalYaml: "",
     manualOverride: false,
-    viewLabel: "",
-    outputs: { conf: "", yaml: "", singbox: "", links: "", sub: "" },
+    outputs: { yaml: "", links: "" },
     tab: "yaml",
     health: null,
     meta: null,
-    versions: [],
   };
   let clearTimer = null;
   let clearDeadline = 0;
   let started = false;
 
-  const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-  const hexText = (text) => Array.from(new TextEncoder().encode(text)).map((b) => b.toString(16).padStart(2, "0")).join("");
   const pemBody = (value) => String(value || "").replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/g, "").replace(/\s/g, "");
 
   /* -------------------------------------------------------------- 本地记忆 --- */
@@ -134,11 +128,11 @@
     ["#copyRemote", "#copyMirror", "#copyImport"].forEach((id) => { $(id).disabled = true; });
   }
 
-  function restoreAddresses() {
-    setFlag(LS_ADDR, false);
-    fillAddresses();
-    toast("订阅地址已恢复");
-    status("订阅地址已恢复；账号 JSON 仍保持清空状态，点“刷新订阅内容”可重新载入已发布配置。");
+  function syncClearButton() {
+    const button = $("#clearNow");
+    if (!button) return;
+    const cleared = flag(LS_ACCOUNT);
+    button.textContent = cleared ? "恢复生成信息" : "一键清空生成信息";
   }
 
   function stopAutoClear() {
@@ -158,8 +152,7 @@
     state.account = null;
     state.canonicalYaml = "";
     state.manualOverride = false;
-    state.viewLabel = "";
-    state.outputs = { conf: "", yaml: "", singbox: "", links: "", sub: "" };
+    state.outputs = { yaml: "", links: "" };
     $("#accountText").value = "";
     $("#result").hidden = true;
     $("#output").textContent = "";
@@ -168,9 +161,10 @@
       setFlag(LS_ACCOUNT, true);
       setFlag(LS_ADDR, true);
       blankAddresses();
-      status("已清空账号 JSON 与三条订阅地址，并记住该操作：下次打开页面不会再自动载入。点“恢复订阅地址”或“刷新订阅内容”可重新载入。");
+      syncClearButton();
+      status("已清空账号 JSON 与三条订阅地址，并记住该操作：下次打开页面不会再自动载入。点“恢复生成信息”可重新载入。");
     } else {
-      status("页面敏感内容已自动清空（账号 JSON 与输出），订阅地址保留。需要时请重新生成或刷新订阅。");
+      status("页面敏感内容已自动清空（账号 JSON 与输出），订阅地址保留。需要时请重新生成或刷新页面。");
     }
   }
 
@@ -189,71 +183,6 @@
   }
 
   /* ------------------------------------------------------------ 配置生成 --- */
-
-  function i1Payload() {
-    const branch = "z" + Math.random().toString(36).slice(2, 12);
-    const tag = String(rand(10000000, 99999999));
-    const payload = `INVITE sip:bob@cloudflareaccess.com SIP/2.0\r\nVia: SIP/2.0/UDP pc33.cloudflareaccess.com;branch=${branch}\r\nTo: Bob <sip:bob@cloudflareaccess.com>\r\nFrom: Alice <sip:alice@cloudflareaccess.com>;tag=${tag}\r\nCall-ID: ${tag}@cloudflareaccess.com\r\nCSeq: ${rand(100000, 999999)} INVITE\r\nContent-Length: 0\r\n\r\n`;
-    return `<b 0x${hexText(payload)}>`;
-  }
-
-  function awgFields(mode) {
-    let jc = rand(3, 24);
-    let jmin = rand(64, 700);
-    let jmax = rand(Math.max(jmin + 64, 128), 1024);
-    const lines = [];
-    if (mode === "legacy") {
-      jc = rand(3, 150);
-      jmin = rand(20, 60);
-      jmax = rand(700, 1000);
-      lines.push("S1 = 0", "S2 = 0");
-    } else {
-      lines.push(`Jc = ${jc}`, `Jmin = ${jmin}`, `Jmax = ${jmax}`);
-      [0, 0, 0, 0].forEach((v, i) => lines.push(`S${i + 1} = ${v}`));
-      lines.push(`I1 = ${i1Payload()}`);
-    }
-    if (mode === "legacy") lines.push(`Jc = ${jc}`, `Jmin = ${jmin}`, `Jmax = ${jmax}`);
-    ["1", "2", "3", "4"].forEach((v, i) => lines.push(`H${i + 1} = ${v}`));
-    if (mode === "awg3" || mode === "awg31") {
-      lines.push(
-        "ContentPaddingAddition = 10-100",
-        "RekeyAfterTime = 100-120",
-        "RekeyTimeout = 3-7",
-        "RejectAfterTime = 150-180",
-        "KeepaliveTimeout = 5-15",
-        "MaxHandshakeAttempts = 15-20"
-      );
-    }
-    return lines;
-  }
-
-  function blockedText(format) {
-    const reason = (state.meta && state.meta.blockedFormatReason) ||
-      "当前账号是 MASQUE（EC P-256）密钥，标准 WireGuard .conf / sing-box 需要 32 字节 X25519 私钥，无法直接转换。";
-    return `无法导出 ${format}\n\n${reason}\n\n可选做法：\n1. 用 wgcf 注册一个 WARP 账号，把 config.json 粘贴到上方输入框，即可导出 .conf 与 sing-box 配置；\n2. 继续使用 Clash / Mihomo 的 MASQUE 订阅（本页“Clash YAML”标签）；\n3. 需要 AmneziaWG 伪装时，用 wgcf 账号 + 上方 AWG 档位生成。`;
-  }
-
-  function buildConf() {
-    const a = state.account;
-    if (!a || !a.wgPrivate) return blockedText("标准 WireGuard .conf");
-    const mode = $("#profile").value;
-    const lines = [
-      "[Interface]",
-      `PrivateKey = ${a.wgPrivate}`,
-      `Address = ${$("#ipv6").checked && a.ipv6 ? `${a.ipv4}, ${a.ipv6}` : a.ipv4}`,
-      "DNS = 1.1.1.1, 1.0.0.1, 2606:4700:4700::1111, 2606:4700:4700::1001",
-      "MTU = 1280",
-      ...awgFields(mode),
-      "",
-      "[Peer]",
-      `PublicKey = ${WARP_PEER}`,
-      `AllowedIPs = ${$("#ipv6").checked && a.ipv6 ? "0.0.0.0/0, ::/0" : "0.0.0.0/0"}`,
-      `Endpoint = ${a.endpoint}:${$("#wgPort").value}`,
-      "PersistentKeepalive = 25",
-      "",
-    ];
-    return lines.join("\n");
-  }
 
   const MASQUE_V4 = ["162.159.198.1", "162.159.198.2", "162.159.199.1", "162.159.199.2"];
   const MASQUE_V6 = ["2606:4700:103::1", "2606:4700:103::2", "2606:4700:104::1", "2606:4700:104::2"];
@@ -335,65 +264,6 @@
       .replace("__RULES_BLOCK__", rulesBlock());
   }
 
-  function buildSingbox() {
-    const a = state.account;
-    if (!a || !a.wgPrivate) return blockedText("sing-box 配置");
-    const local = [`${a.ipv4}/32`].concat($("#ipv6").checked && a.ipv6 ? [`${a.ipv6}/128`] : []);
-    const allowed = ["0.0.0.0/0"].concat($("#ipv6").checked && a.ipv6 ? ["::/0"] : []);
-    const nodes = orderedNodes();
-    const names = nodes.map((n) => `WARP | ${n.server} | ${n.port}`);
-    const endpoints = nodes.map((n, i) => ({
-      type: "wireguard",
-      tag: names[i],
-      system: false,
-      mtu: 1280,
-      address: local,
-      private_key: a.wgPrivate,
-      udp_timeout: "5m",
-      peers: [{
-        address: n.server,
-        port: n.port,
-        public_key: WARP_PEER,
-        allowed_ips: allowed,
-        persistent_keepalive_interval: 25,
-      }],
-    }));
-    const config = {
-      _comment: "由 Warp-Masque free 页面生成；含私钥，请当作凭据保管；需要 sing-box >= 1.13",
-      _generatedAt: new Date().toLocaleString("zh-CN"),
-      log: { level: "info", timestamp: true },
-      dns: {
-        servers: [
-          { tag: "proxy-dns", address: "https://1.1.1.1/dns-query", detour: "节点选择" },
-          { tag: "local-dns", address: "223.5.5.5", detour: "direct" },
-        ],
-        rules: [{ rule_set: "geosite-cn", server: "local-dns" }],
-        final: "proxy-dns",
-      },
-      inbounds: [{ type: "mixed", tag: "mixed-in", listen: "127.0.0.1", listen_port: 7890 }],
-      endpoints,
-      outbounds: [
-        { type: "selector", tag: "节点选择", outbounds: ["自动选择", "手动切换", "direct"], default: "自动选择" },
-        { type: "urltest", tag: "自动选择", outbounds: names, url: $("#testUrl").value.trim() || TRACE_URL, interval: "5m", tolerance: 50, idle_timeout: "30m" },
-        { type: "selector", tag: "手动切换", outbounds: names, default: names[0] },
-        { type: "direct", tag: "direct" },
-      ],
-      route: {
-        rules: [{ rule_set: "geosite-cn", outbound: "direct" }],
-        rule_set: [{
-          tag: "geosite-cn",
-          type: "remote",
-          format: "binary",
-          url: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/cn.mrs",
-          download_detour: "direct",
-        }],
-        final: "节点选择",
-        auto_detect_interface: true,
-      },
-    };
-    return JSON.stringify(config, null, 2);
-  }
-
   function buildLinks() {
     const a = state.account;
     if (!a || !a.privateKey || !a.publicKey) return "当前账号缺少 MASQUE 密钥，无法生成 masque:// 分享链接。";
@@ -421,30 +291,14 @@
     $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
     $("#output").textContent = state.outputs[tab] || "尚未生成，请先粘贴账号 JSON。";
     $("#copyOutput").disabled = !state.outputs[tab];
-    $("#downloadOutput").disabled = tab === "sub" || !state.outputs[tab];
+    $("#downloadOutput").disabled = !state.outputs[tab];
   }
 
   function render() {
-    state.outputs.conf = buildConf();
     state.outputs.yaml = state.manualOverride || !state.canonicalYaml ? buildYaml() : state.canonicalYaml;
-    state.outputs.singbox = buildSingbox();
     state.outputs.links = buildLinks();
-    state.outputs.sub = [
-      "公开订阅地址（GitHub Pages）：",
-      SUB_URL,
-      "",
-      "镜像订阅地址（gh-proxy）：",
-      MIRROR_URL,
-      "",
-      "Clash 导入链接（镜像）：",
-      IMPORT_URL,
-      "",
-      "私钥不会编码进 URL。需要本地备份请使用“下载文件”或“复制”。",
-    ].join("\n");
     $("#result").hidden = false;
-    $("#resultMeta").textContent = state.viewLabel
-      ? `查看历史版本 ${state.viewLabel}（只读预览，回滚请点“回滚”）`
-      : `${$("#profile").value.toUpperCase()} · ${$("#network").value.toUpperCase()} · 本地转换`;
+    $("#resultMeta").textContent = `${$("#network").value.toUpperCase()} · ${$("#endpointMode").value.toUpperCase()} · 本地转换`;
     showTab(state.tab);
   }
 
@@ -458,24 +312,7 @@
     const ipv4 = account.ipv4 || account.address || "172.16.0.2";
     const ipv6 = account.ipv6 || "";
     if (!privateKey) throw new Error("账号缺少 private_key");
-    state.account = {
-      privateKey,
-      publicKey,
-      wgPrivate: x25519(privateKey),
-      ipv4,
-      ipv6,
-      endpoint: account.endpoint_v4 || account.endpoint || "engage.cloudflareclient.com",
-    };
-  }
-
-  function x25519(value) {
-    const text = String(value || "").trim();
-    if (!/^[A-Za-z0-9+/]{43}=?$/.test(text)) return "";
-    try {
-      return atob(text).length === 32 ? text : "";
-    } catch {
-      return "";
-    }
+    state.account = { privateKey, publicKey, ipv4, ipv6 };
   }
 
   async function copyText(text, message = "已复制") {
@@ -503,10 +340,7 @@
       $("#statBest").textContent = "—";
       return;
     }
-    const lastText = fmtLocal(meta.generatedAt) || meta.generatedAtLocal || "—";
-    $("#statLast").textContent = meta.rolledBackTo
-      ? `${lastText}（回滚至 ${meta.rolledBackTo}）`
-      : lastText;
+    $("#statLast").textContent = fmtLocal(meta.generatedAt) || meta.generatedAtLocal || "—";
     const verifiedText = meta.probed
       ? `${meta.verified ?? meta.healthy ?? 0}`
       : "未测速";
@@ -597,7 +431,7 @@
     }
 
     if (isCleared()) {
-      rows.push(checkRow("warn", "账号文件已按你的操作跳过", "你点过“一键清空”，页面不会请求 configs/usque-config.json。点“刷新订阅内容”可重新载入。"));
+      rows.push(checkRow("warn", "账号文件已按你的操作跳过", "你点过“一键清空”，页面不会请求 configs/usque-config.json。点“恢复生成信息”可重新载入。"));
     } else {
       const account = await fetchJson("configs/usque-config.json");
       rows.push(account
@@ -629,88 +463,12 @@
     }
 
     rows.push(checkRow("warn", "内核要求", KERNEL_HINT));
-    if (state.account && !state.account.wgPrivate) {
-      rows.push(checkRow("warn", "当前账号只支持 MASQUE", "该账号是 EC P-256 密钥，无法导出标准 WireGuard .conf / sing-box，属正常现象。"));
-    }
 
     box.innerHTML = rows.join("");
     $("#checkMeta").textContent = `上次自检：${new Date().toLocaleTimeString("zh-CN", { hour12: false })}`;
     if (hints.length) {
       $("#healthHints").innerHTML = `<div class="hint-block-in"><b>排查提示</b><ul>${hints.map((h) => `<li>${h}</li>`).join("")}</ul></div>`;
     }
-  }
-
-  /* --------------------------------------------------------------- 版本列表 --- */
-
-  function renderVersions() {
-    const box = $("#historyList");
-    if (!state.versions.length) {
-      box.innerHTML = '<p class="hint">尚未读取到版本列表。运行一次 Actions（开启 commit）后即可在这里看到快照。</p>';
-      return;
-    }
-    box.innerHTML = state.versions.map((v, index) => {
-      const best = v.bestLatencyMs != null ? `${v.bestLatencyMs}ms` : "未测速";
-      return `<div class="vrow">
-        <div class="vmain">
-          <b>${v.version}</b>
-          <span class="vtag">${index === 0 ? "最新" : `-${index}`}</span>
-          <p>${fmtLocal(v.createdAt) || v.createdAtLocal || "—"} · ${v.nodes ?? "?"} 个节点 · 已验证 ${v.verified ?? v.healthy ?? "?"} · 最优 ${best}${v.bestEndpoint ? ` (${v.bestEndpoint})` : ""}</p>
-        </div>
-        <div class="vactions">
-          <button type="button" class="btn btn-mini" data-view="${v.version}">查看</button>
-          <button type="button" class="btn btn-mini" data-download="${v.version}">下载</button>
-          <button type="button" class="btn btn-mini btn-primary" data-rollback="${v.version}">回滚</button>
-        </div>
-      </div>`;
-    }).join("");
-
-    box.querySelectorAll("[data-view]").forEach((btn) => btn.addEventListener("click", () => viewVersion(btn.dataset.view)));
-    box.querySelectorAll("[data-download]").forEach((btn) => btn.addEventListener("click", () => downloadVersion(btn.dataset.download)));
-    box.querySelectorAll("[data-rollback]").forEach((btn) => btn.addEventListener("click", () => rollbackVersion(btn.dataset.rollback)));
-  }
-
-  async function loadVersions() {
-    const index = await fetchJson("configs/history/index.json");
-    if (index && Array.isArray(index.versions)) {
-      state.versions = index.versions;
-      renderVersions();
-    }
-  }
-
-  async function viewVersion(version) {
-    const text = await fetchText(`configs/history/warp-masque-${version}.yaml`, 12000);
-    if (!text) {
-      toast("读取该版本失败");
-      return;
-    }
-    state.canonicalYaml = text;
-    state.manualOverride = false;
-    state.viewLabel = version;
-    state.tab = "yaml";
-    render();
-    $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
-    toast(`已载入历史版本 ${version}`);
-  }
-
-  async function downloadVersion(version) {
-    const text = await fetchText(`configs/history/warp-masque-${version}.yaml`, 12000);
-    if (!text) {
-      toast("下载失败");
-      return;
-    }
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `warp-masque-${version}.yaml`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function rollbackVersion(version) {
-    await copyText(version, `版本号 ${version} 已复制`);
-    window.open(ROLLBACK_URL, "_blank", "noopener");
-    toast("已复制版本号并打开回滚工作流，粘贴后运行即可");
   }
 
   /* --------------------------------------------------------------- 事件绑定 --- */
@@ -720,7 +478,6 @@
       try {
         parseAccount();
         state.manualOverride = true;
-        state.viewLabel = "";
         render();
         status("已从账号 JSON 本地生成配置（本地预览）；页面敏感内容将在 60 秒后自动清空。");
         scheduleAutoClear();
@@ -729,23 +486,25 @@
         toast(error.message);
       }
     });
-    $("#reloadSub").addEventListener("click", () => {
-      setFlag(LS_ACCOUNT, false);
-      setFlag(LS_ADDR, false);
-      fillAddresses();
-      loadPublishedConfig(true);
-    });
     $("#clearNow").addEventListener("click", () => {
+      if (flag(LS_ACCOUNT)) {
+        // 再点一次即恢复：清掉标记、回填地址、重新载入已发布配置
+        setFlag(LS_ACCOUNT, false);
+        setFlag(LS_ADDR, false);
+        fillAddresses();
+        syncClearButton();
+        loadPublishedConfig(true);
+        return;
+      }
       clearGeneratedContent(true);
       toast("已清空并记住，下次打开保持空白");
     });
-    $("#restoreSub").addEventListener("click", restoreAddresses);
     $("#copyRemote").addEventListener("click", () => copyText(SUB_URL, "订阅地址已复制"));
     $("#copyMirror").addEventListener("click", () => copyText(MIRROR_URL, "镜像地址已复制"));
     $("#copyImport").addEventListener("click", () => copyText(IMPORT_URL, "导入链接已复制"));
     $("#copyOutput").addEventListener("click", () => copyText(state.outputs[state.tab] || ""));
     $("#downloadOutput").addEventListener("click", () => {
-      const map = { conf: "conf", yaml: "yaml", singbox: "json", links: "txt" };
+      const map = { yaml: "yaml", links: "txt" };
       const text = state.outputs[state.tab];
       const ext = map[state.tab];
       if (!text || !ext) return;
@@ -783,9 +542,7 @@
 
   async function loadPublishedConfig(announce = false) {
     if (isCleared()) {
-      status(flag(LS_ADDR)
-        ? "已按上次“一键清空”保持空白：账号 JSON 与订阅地址都不会自动载入。点“刷新订阅内容”可重新载入。"
-        : "账号 JSON 已按上次“一键清空”保持空白（订阅地址已恢复）。点“刷新订阅内容”可重新载入已发布配置。");
+      status("已按上次“一键清空”保持空白：账号 JSON 与订阅地址都不会自动载入。点“恢复生成信息”可重新载入。");
       return;
     }
     status("正在读取已发布的配置…");
@@ -814,10 +571,9 @@
     if (yaml) {
       state.canonicalYaml = yaml;
       state.manualOverride = false;
-      state.viewLabel = "";
     }
     render();
-    status(`${announce ? "订阅内容已刷新" : "已自动载入 Actions 发布的配置"}；页面敏感内容将在 60 秒后自动清空（订阅地址保留）。`);
+    status(`${announce ? "已恢复并重新载入" : "已自动载入 Actions 发布的配置"}；页面敏感内容将在 60 秒后自动清空（订阅地址保留）。`);
     scheduleAutoClear();
   }
 
@@ -844,11 +600,11 @@
     else fillAddresses();
 
     bindEvents();
+    syncClearButton();
     setInterval(enforceAutoClear, 2000);
 
     loadMeta();
     loadHealth();
-    loadVersions();
     loadPublishedConfig();
     setInterval(() => { loadMeta(); loadHealth(); }, 10 * 60_000);
   }
