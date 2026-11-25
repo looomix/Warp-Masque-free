@@ -524,9 +524,10 @@
       $("#statNext").textContent = "运行一次 Actions 后可见";
       return;
     }
+    const lastText = fmtLocal(meta.generatedAt) || meta.generatedAtLocal || "—";
     $("#statLast").textContent = meta.rolledBackTo
-      ? `${meta.generatedAtLocal || fmtLocal(meta.generatedAt)}（回滚至 ${meta.rolledBackTo}）`
-      : (meta.generatedAtLocal || fmtLocal(meta.generatedAt));
+      ? `${lastText}（回滚至 ${meta.rolledBackTo}）`
+      : lastText;
     $("#statNext").textContent = meta.nextRunAt ? fmtLocal(meta.nextRunAt) : "未设置定时";
     $("#statNodes").textContent = `${meta.nodes ?? "—"} / ${meta.probed ? (meta.healthy ?? 0) : "未测速"}`;
     $("#statCron").textContent = cronText(meta.cron);
@@ -663,7 +664,7 @@
         <div class="vmain">
           <b>${v.version}</b>
           <span class="vtag">${index === 0 ? "最新" : `-${index}`}</span>
-          <p>${v.createdAtLocal || fmtLocal(v.createdAt)} · ${v.nodes ?? "?"} 个节点 · 健康 ${v.healthy ?? "?"} · 最优 ${best}${v.bestEndpoint ? ` (${v.bestEndpoint})` : ""}</p>
+          <p>${fmtLocal(v.createdAt) || v.createdAtLocal || "—"} · ${v.nodes ?? "?"} 个节点 · 健康 ${v.healthy ?? "?"} · 最优 ${best}${v.bestEndpoint ? ` (${v.bestEndpoint})` : ""}</p>
         </div>
         <div class="vactions">
           <button type="button" class="btn btn-mini" data-view="${v.version}">查看</button>

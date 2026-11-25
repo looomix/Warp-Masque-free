@@ -37,6 +37,12 @@ TEST_URL = "https://cloudflare.com/cdn-cgi/trace"
 WARP_PEER = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
 DEFAULT_CRON = "0 */6 * * *"
 KERNEL_HINT = "masque 出站需要 Mihomo Alpha 内核（>= 1.19.0-alpha）；稳定版会报 unknown proxy type"
+BEIJING = timezone(timedelta(hours=8))
+
+
+def local_stamp():
+    """Runner 默认是 UTC，这里统一按北京时间输出可读时间。"""
+    return datetime.now(BEIJING).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def pem_body(value):
@@ -203,7 +209,7 @@ def build_conf(private_key, ipv4, ipv6, server, port=2408):
     address = f"{ipv4}/32" + (f", {ipv6}/128" if ipv6 else "")
     allowed = "0.0.0.0/0" + (", ::/0" if ipv6 else "")
     return f"""# Cloudflare WARP · 标准 WireGuard 配置（由 Warp-Masque free 生成）
-# 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+# 生成时间: {local_stamp()}
 # 客户端: WireGuard 官方客户端 / wg-quick；AWG 伪装参数请在页面生成
 [Interface]
 PrivateKey = {private_key}
@@ -258,7 +264,7 @@ def build_singbox(private_key, ipv4, ipv6, nodes, latency_map):
     ]
     return json.dumps({
         "_comment": "由 Warp-Masque free 生成；含私钥，请当作凭据保管；需要 sing-box >= 1.13",
-        "_generatedAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "_generatedAt": local_stamp(),
         "log": {"level": "info", "timestamp": True},
         "dns": {
             "servers": [
@@ -287,7 +293,7 @@ def build_singbox(private_key, ipv4, ipv6, nodes, latency_map):
 
 def write_history(history_dir, yaml_text, summary, keep):
     os.makedirs(history_dir, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    stamp = datetime.now(BEIJING).strftime("%Y%m%d-%H%M%S")
     filename = f"warp-masque-{stamp}.yaml"
     path = os.path.join(history_dir, filename)
     suffix = 1
@@ -312,7 +318,7 @@ def write_history(history_dir, yaml_text, summary, keep):
         "version": version,
         "file": filename,
         "createdAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "createdAtLocal": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "createdAtLocal": local_stamp(),
         **summary,
     })
     versions = versions[:keep]
@@ -440,7 +446,7 @@ def main():
     best_latency = latency_map.get(best)
 
     yaml = f"""# Cloudflare WARP MASQUE 订阅 · GitHub Actions 自动生成
-# 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+# 生成时间: {local_stamp()}
 # 节点: {len(selected)} 个（已按测速结果从快到慢排序，剔除不可达端点）
 # 内核: {KERNEL_HINT}
 # private-key 等同账号凭据，请勿公开转发
@@ -555,7 +561,7 @@ rules:
     upcoming = next_run(args.cron, now)
     meta = {
         "generatedAt": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "generatedAtLocal": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "generatedAtLocal": local_stamp(),
         "cron": args.cron,
         "nextRunAt": upcoming.strftime("%Y-%m-%dT%H:%M:%SZ") if upcoming else None,
         "nodes": len(selected),
