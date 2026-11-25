@@ -38,7 +38,7 @@ def main():
     for proxy in proxies:
         if proxy.get("type") != "masque":
             fail("存在非 masque 节点")
-        for key in ("server", "port", "private-key", "public-key", "ip", "sni"):
+        for key in ("server", "port", "private-key", "public-key", "ip", "dns", "sni"):
             if not proxy.get(key):
                 fail(f"节点缺少 {key}")
     groups = [g.get("name") for g in (data.get("proxy-groups") or []) if isinstance(g, dict)]
