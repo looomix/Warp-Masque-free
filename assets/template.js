@@ -1,7 +1,7 @@
 window.MASQUE_TEMPLATE = `# Warp-Masque free · GitHub Actions 自动生成的 MASQUE 配置
 # 生成时间: __TIME__
 # 版本: __VERSION__
-# 节点顺序: 已按 Actions 测速结果从快到慢排列（每个节点上方标注延迟）
+# 节点顺序: 已验证端点按延迟升序在前，未验证端点在后（每个节点上方有标注）
 # 内核要求: Mihomo Alpha >= 1.19.0-alpha，稳定版会报 unknown proxy type
 # 提示：本配置含私钥，请勿公开分享
 
@@ -80,16 +80,16 @@ __PROXIES__
 proxy-groups:
   - name: 节点选择
     type: select
-    proxies: [自动端点, 手动端点, 故障转移, 负载均衡, __PROXY_NAMES__, 国内直连]
+    proxies: [自动选择, 手动切换, 故障转移, 负载均衡, 国内直连]
     icon: "https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Rocket.png"
-  - name: 自动端点
+  - name: 自动选择
     type: url-test
     url: __TEST_URL__
     interval: __TEST_INTERVAL__
     tolerance: __TEST_TOLERANCE__
     lazy: true
-    proxies: __OFFICIAL_NAMES__
-  - name: 手动端点
+    proxies: __PROXY_NAMES__
+  - name: 手动切换
     type: select
     proxies: __PROXY_NAMES__
   - name: 故障转移
@@ -99,14 +99,12 @@ proxy-groups:
     proxies: __PROXY_NAMES__
   - name: 负载均衡
     type: load-balance
+    strategy: round-robin
     url: __TEST_URL__
     interval: __TEST_INTERVAL__
     proxies: __PROXY_NAMES__
   - name: 国内直连
     type: select
     proxies: [DIRECT]
-  - name: FINAL
-    type: select
-    proxies: [节点选择, 自动端点, 手动端点, 国内直连]
 __RULES_BLOCK__
 `;

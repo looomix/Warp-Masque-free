@@ -96,7 +96,11 @@ jobs:
           done
           test -s dist/warp-masque.yaml
           test -s dist/warp-masque-links.txt
-          echo "健康节点: $(python3 -c "import json;print(json.load(open('dist/health.json'))['healthy'])")"
+          python3 - <<'PY'
+          import json
+          h = json.load(open('dist/health.json'))
+          print(f"发布 {h.get('published')} 个节点（已验证 {h.get('verified')}，未验证 {h.get('unverified')}）")
+          PY
 
       - name: 校验订阅配置
         shell: bash
@@ -112,13 +116,13 @@ jobs:
           python3 - <<'PY'
           import json
           h = json.load(open('dist/health.json'))
-          print(f"测速结果: 健康 {h.get('healthy')}/{h.get('total')}，剔除 {h.get('dropped')}")
+          print(f"探测结果: 已验证 {h.get('verified')}/{h.get('total')}，未验证 {h.get('unverified')}，剔除 {h.get('dropped')}")
           for p in h.get('ports', []):
               print(f"  端口 {p['port']}: 成功 {p['ok']} / 失败 {p['fail']}")
           for hint in h.get('hints', []):
               print("提示:", hint)
-          if h.get('healthy', 0) == 0:
-              print("::warning::本次没有端点通过测速，订阅已按全量端点发布，请检查 Runner 出口或端口放行")
+          if h.get('verified', 0) == 0:
+              print("::warning::本次没有任何端点通过 QUIC 探测，订阅已按全量端点发布，请检查 Runner 出口是否允许 UDP")
           PY
 
       - name: 提交订阅配置（需勾选 commit）

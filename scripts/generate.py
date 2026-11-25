@@ -28,9 +28,13 @@ import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
-V4 = ["162.159.198.2", "162.159.199.2"]
-V6 = ["2606:4700:103::2", "2606:4700:104::2"]
-PORTS = (443, 4443, 8443, 8095)
+# Cloudflare MASQUE 只在这几个 anycast 段上应答（每段 2 个地址），
+# 端口固定为 443/500/1701/4500/4443/8443/8095，4x7=28 个 v4、4x7=28 个 v6 端点。
+V4 = ["162.159.198.1", "162.159.198.2", "162.159.199.1", "162.159.199.2"]
+V6 = ["2606:4700:103::1", "2606:4700:103::2", "2606:4700:104::1", "2606:4700:104::2"]
+PORTS = (443, 500, 1701, 4500, 4443, 8443, 8095)
+TLS_PORTS = (443, 8443)
+QUIC_PROBE_VERSION = b"\x00\x00\x00\x02"  # 不支持的版本号，用于套出 Version Negotiation
 SNI = "www.cloudflareaccess.com"
 RS = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite"
 TEST_URL = "https://cloudflare.com/cdn-cgi/trace"
@@ -81,76 +85,155 @@ def build_nodes(include_v6=True):
 
 # ---------------------------------------------------------------- probing ----
 
-def probe(server, port, timeout=2.5, sni=SNI):
-    """Reachability probe run from the Actions runner.
+def _family(server):
+    return "v6" if ":" in server else "v4"
 
-    port 443 / 8443 -> TCP connect + TLS handshake (SNI), other ports -> TCP.
-    This measures endpoint reachability from the runner, not tunnel quality;
-    a failure usually means runner egress or the port is blocked.
+
+NO_ROUTE_CODES = {101, 113, 51, 65, 10051, 10065}  # ENETUNREACH / EHOSTUNREACH（含 Windows WSA）
+
+
+def _net_error(exc):
+    """把 errno 归一成可读原因，ENETUNREACH/EHOSTUNREACH 单独标记（主机没有该协议出口）。"""
+    code = getattr(exc, "errno", None) or getattr(exc, "winerror", None)
+    if code in NO_ROUTE_CODES:
+        return "unroutable"
+    return (str(exc)[:60] or type(exc).__name__)
+
+
+def host_has_ipv6():
+    """UDP connect 只做路由查找，不真的发包：没有 IPv6 出口时会直接报 ENETUNREACH。"""
+    sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+    try:
+        sock.connect((V6[0], 443))
+        return True
+    except OSError:
+        return False
+    finally:
+        sock.close()
+
+
+def probe_quic(server, port, timeout, attempts=4):
+    """用一个不支持的 QUIC 版本号套出 Version Negotiation，判断 UDP 上是否真有 MASQUE 服务。
+
+    Cloudflare 对 Version Negotiation 做了限速，单次没有回包不代表端点不可用，
+    所以默认重试 3 次；任意一次收到回包即视为可达，取最快一次作为 RTT。
     """
-    method = "tls" if port in (443, 8443) else "tcp"
-    started = time.perf_counter()
+    dcid, scid = os.urandom(8), os.urandom(8)
+    packet = b"\xc0" + QUIC_PROBE_VERSION + bytes([len(dcid)]) + dcid
+    packet += bytes([len(scid)]) + scid
+    packet += b"\x00" * (1200 - len(packet))
+    family = socket.AF_INET6 if _family(server) == "v6" else socket.AF_INET
+    best, last, hits = None, "quic 无响应", 0
+    for _ in range(max(1, attempts)):
+        sock = socket.socket(family, socket.SOCK_DGRAM)
+        sock.settimeout(timeout)
+        started = time.perf_counter()
+        try:
+            sock.sendto(packet, (server, port))
+            sock.recvfrom(2048)
+            latency = round((time.perf_counter() - started) * 1000)
+            best = latency if best is None else min(best, latency)
+            hits += 1
+            if hits >= 2:   # 取两次的最快值，压掉限速引起的排队抖动
+                break
+        except socket.timeout:
+            last = "quic 无响应"
+        except OSError as exc:
+            last = _net_error(exc)
+        finally:
+            sock.close()
+    return best, last
+
+
+def probe_tls(server, port, timeout, sni):
+    """443/8443 上的 TCP+TLS：只用来确认 H2 传输是否可用。"""
     sock = None
+    started = time.perf_counter()
     try:
         sock = socket.create_connection((server, port), timeout=timeout)
-        if method == "tls":
-            ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-            sock = ctx.wrap_socket(sock, server_hostname=sni)
-        latency = round((time.perf_counter() - started) * 1000)
-        return {"server": server, "port": port, "ok": True, "latencyMs": latency,
-                "method": method, "error": None}
-    except socket.timeout:
-        return {"server": server, "port": port, "ok": False, "latencyMs": None,
-                "method": method, "error": "timeout"}
-    except ConnectionRefusedError:
-        return {"server": server, "port": port, "ok": False, "latencyMs": None,
-                "method": method, "error": "refused"}
-    except socket.gaierror:
-        return {"server": server, "port": port, "ok": False, "latencyMs": None,
-                "method": method, "error": "dns"}
-    except ssl.SSLError as exc:
-        return {"server": server, "port": port, "ok": False, "latencyMs": None,
-                "method": method, "error": "tls: " + str(exc)[:80]}
-    except OSError as exc:
-        return {"server": server, "port": port, "ok": False, "latencyMs": None,
-                "method": method, "error": str(exc)[:80]}
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        sock = ctx.wrap_socket(sock, server_hostname=sni)
+        return round((time.perf_counter() - started) * 1000), None
+    except Exception as exc:  # 探测失败原因需要原样展示
+        return None, _net_error(exc)
     finally:
-        try:
-            if sock is not None:
+        if sock is not None:
+            try:
                 sock.close()
-        except OSError:
-            pass
+            except OSError:
+                pass
 
 
-def probe_all(nodes, timeout, workers=16):
+def probe(server, port, timeout=2.0, sni=SNI):
+    """先探 QUIC（MASQUE 的真实传输层），443/8443 再补一次 TLS 判断 H2。"""
+    latency, error = probe_quic(server, port, timeout)
+    base = {"server": server, "port": port, "family": _family(server)}
+    if latency is not None:
+        return dict(base, ok=True, latencyMs=latency, method="quic", error=None, unroutable=False)
+    unroutable = error == "unroutable"
+    if port in TLS_PORTS and not unroutable:
+        tls_latency, tls_error = probe_tls(server, port, timeout, sni)
+        if tls_latency is not None:
+            return dict(base, ok=True, latencyMs=tls_latency, method="tls", error=None, unroutable=False)
+        error = "quic: %s / tls: %s" % (error, tls_error)
+    return dict(base, ok=False, latencyMs=None,
+                method="quic+tls" if port in TLS_PORTS else "quic",
+                error=error, unroutable=unroutable)
+
+
+def probe_all(nodes, timeout, workers=8):
     with ThreadPoolExecutor(max_workers=max(1, min(workers, len(nodes)))) as pool:
         return list(pool.map(lambda n: probe(n[0], n[1], timeout), nodes))
 
 
-def build_health(results, max_latency):
-    def kept(result):
-        return bool(result["ok"]) and (result["latencyMs"] or 10 ** 9) <= max_latency
+def classify(results, max_latency, has_ipv6=True):
+    """区分「已验证可用」「未验证但保留」「剔除」三种端点。
 
-    nodes = [dict(r, kept=kept(r)) for r in results]
-    nodes.sort(key=lambda r: (not r["kept"], r["latencyMs"] or 10 ** 9))
-    healthy = [r for r in nodes if r["kept"]]
+    - 探测到 QUIC/TLS 回包且在阈值内 -> 已验证
+    - 探测有回包但太慢 -> 剔除
+    - 整批 IPv6 都是 ENETUNREACH（Runner 没有 IPv6 出口）-> 保留但标注未验证，
+      因为客户端本身可能有 IPv6；否则剔除
+    """
+    v6_fail = [r for r in results if r["family"] == "v6" and not r["ok"]]
+    v6_unroutable = not has_ipv6 or (bool(v6_fail) and all(r["unroutable"] for r in v6_fail))
+    nodes = []
+    for result in results:
+        item = dict(result)
+        item["verified"] = bool(result["ok"])
+        if result["ok"]:
+            item["kept"] = (result["latencyMs"] or 10 ** 9) <= max_latency
+            item["reason"] = None if item["kept"] else "延迟超阈值"
+        elif result["family"] == "v6" and v6_unroutable:
+            item["kept"] = True
+            item["reason"] = "Runner 无 IPv6 出口"
+        else:
+            item["kept"] = False
+            item["reason"] = "探测无响应"
+        nodes.append(item)
+    nodes.sort(key=lambda r: (not r["verified"], not r["kept"], r["latencyMs"] or 10 ** 9))
+    return nodes, v6_unroutable
+
+
+def make_health(results, nodes, published, max_latency, v6_unroutable):
     ports = {}
-    for r in results:
-        item = ports.setdefault(r["port"], {"port": r["port"], "ok": 0, "fail": 0})
-        item["ok" if r["ok"] else "fail"] += 1
+    for result in results:
+        item = ports.setdefault(result["port"], {"port": result["port"], "ok": 0, "fail": 0})
+        item["ok" if result["ok"] else "fail"] += 1
+    verified = [n for n in nodes if n["verified"] and n["kept"]]
+    unverified = [n for n in nodes if n["kept"] and not n["verified"]]
+    slow = [n for n in nodes if n["verified"] and not n["kept"]]
     hints = []
-    if not healthy:
-        hints.append("Runner 侧未连通任何端点：优先确认 GitHub Runner 出口是否限制目标端口，或勾选“跳过测速”直接发布。")
+    if not verified:
+        hints.append("Runner 侧没有任何端点完成 QUIC 握手：先勾选“跳过测速”发布，再确认 Runner 出口是否允许 UDP。")
+    if v6_unroutable:
+        hints.append("Runner 没有 IPv6 出口：IPv6 端点无法验证但仍写入订阅，客户端有 IPv6 时才可用。")
     dead = [str(p["port"]) for p in ports.values() if p["ok"] == 0]
     if dead:
-        hints.append("端口 " + " / ".join(dead) + " 全部探测失败：客户端若只放行 443，请在生成器把 MASQUE 端口改为 443 或 8443。")
-    slow = [r for r in nodes if r["ok"] and not r["kept"]]
+        hints.append("端口 " + " / ".join(dead) + " 全部无响应，已按端口剔除；客户端若只放行 443 请优先用 443 节点。")
     if slow:
-        hints.append(f"{len(slow)} 个端点可达但延迟超过 {max_latency}ms，已从订阅中剔除；可在运行工作流时调高 max_latency。")
-    if any(p["ok"] > 0 for p in ports.values() if p["port"] != 443):
-        hints.append("非 443 端口可达，说明网络未强制只放行 443；建议优先使用延迟最低的那组节点。")
+        hints.append(f"{len(slow)} 个端点延迟超过 {max_latency}ms 已剔除，可在运行工作流时调高 max_latency。")
     hints.append(KERNEL_HINT)
     hints.append("若订阅导入后全部超时：核对 SNI（默认 www.cloudflareaccess.com）、系统时间误差 < 60 秒、MTU 1280。")
     return {
@@ -159,8 +242,10 @@ def build_health(results, max_latency):
         "testUrl": TEST_URL,
         "maxLatency": max_latency,
         "total": len(results),
-        "healthy": len(healthy),
-        "dropped": len(results) - len(healthy),
+        "verified": len(verified),
+        "unverified": len(unverified),
+        "published": published,
+        "dropped": len(results) - published,
         "ports": sorted(ports.values(), key=lambda p: p["port"]),
         "nodes": nodes,
         "hints": hints,
@@ -169,9 +254,9 @@ def build_health(results, max_latency):
 
 # ------------------------------------------------------------------ formats ---
 
-def proxy_block(name, server, port, private_key, public_key, ipv4, ipv6, latency_note):
+def proxy_block(name, server, port, private_key, public_key, ipv4, ipv6, note):
     ipv6_line = f"\n    ipv6: {ipv6}" if ipv6 else ""
-    head = f"  # 延迟 {latency_note}\n" if latency_note else ""
+    head = f"  # {note}\n" if note else ""
     return head + (
         '  - name: "%s"\n'
         "    type: masque\n"
@@ -290,18 +375,29 @@ def build_singbox(private_key, ipv4, ipv6, nodes, latency_map):
 
 # ------------------------------------------------------------------ history ---
 
-def write_history(history_dir, yaml_text, summary, keep):
+def write_history(history_dir, yaml_text, links_text, account_text, summary, keep):
+    """一份快照存三个文件：订阅 YAML、masque 链接、对应账号 JSON。
+
+    回滚时三者一起还原，避免出现「订阅还是旧账号、页面却显示新账号」的错配。
+    """
     os.makedirs(history_dir, exist_ok=True)
     stamp = datetime.now(BEIJING).strftime("%Y%m%d-%H%M%S")
-    filename = f"warp-masque-{stamp}.yaml"
-    path = os.path.join(history_dir, filename)
+    version = stamp
     suffix = 1
-    while os.path.exists(path):
+    while os.path.exists(os.path.join(history_dir, f"warp-masque-{version}.yaml")):
         suffix += 1
-        filename = f"warp-masque-{stamp}-{suffix}.yaml"
-        path = os.path.join(history_dir, filename)
-    with open(path, "w", encoding="utf-8") as handle:
+        version = f"{stamp}-{suffix}"
+    files = {
+        "yaml": f"warp-masque-{version}.yaml",
+        "links": f"warp-masque-{version}.txt",
+        "account": f"warp-masque-{version}.json",
+    }
+    with open(os.path.join(history_dir, files["yaml"]), "w", encoding="utf-8") as handle:
         handle.write(yaml_text)
+    with open(os.path.join(history_dir, files["links"]), "w", encoding="utf-8") as handle:
+        handle.write(links_text)
+    with open(os.path.join(history_dir, files["account"]), "w", encoding="utf-8") as handle:
+        handle.write(account_text)
 
     index_path = os.path.join(history_dir, "index.json")
     try:
@@ -312,10 +408,11 @@ def write_history(history_dir, yaml_text, summary, keep):
     except (OSError, json.JSONDecodeError):
         index = {}
     versions = index.get("versions") or []
-    version = filename[len("warp-masque-"):-len(".yaml")]
     versions.insert(0, {
         "version": version,
-        "file": filename,
+        "file": files["yaml"],
+        "links": files["links"],
+        "account": files["account"],
         "createdAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "createdAtLocal": local_stamp(),
         **summary,
@@ -327,14 +424,21 @@ def write_history(history_dir, yaml_text, summary, keep):
         json.dump(index, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
 
-    # prune snapshots that fell out of the index
-    alive = {v["file"] for v in versions}
+    # 清理落出索引的快照（yaml / txt / json 一起）
+    alive = set()
+    for item in versions:
+        for key in ("file", "links", "account"):
+            if item.get(key):
+                alive.add(item[key])
     for name in os.listdir(history_dir):
-        if name.startswith("warp-masque-") and name.endswith(".yaml") and name not in alive:
-            try:
-                os.remove(os.path.join(history_dir, name))
-            except OSError:
-                pass
+        if not name.startswith("warp-masque-") or not name.endswith((".yaml", ".txt", ".json")):
+            continue
+        if name in alive:
+            continue
+        try:
+            os.remove(os.path.join(history_dir, name))
+        except OSError:
+            pass
     return version
 
 
@@ -346,7 +450,7 @@ def main():
     parser.add_argument("outdir", help="输出目录")
     parser.add_argument("--no-probe", action="store_true", help="跳过端点测速")
     parser.add_argument("--max-latency", type=int, default=1200, help="延迟阈值（毫秒）")
-    parser.add_argument("--timeout", type=float, default=2.5, help="单端点探测超时（秒）")
+    parser.add_argument("--timeout", type=float, default=1.6, help="单次 QUIC 探测超时（秒），每个端点最多试 3 次")
     parser.add_argument("--top", type=int, default=0, help="只保留最快的前 N 个节点（0 = 不限制）")
     parser.add_argument("--history-dir", default="", help="配置快照目录，例如 configs/history")
     parser.add_argument("--keep", type=int, default=10, help="保留最近 N 份快照")
@@ -363,27 +467,42 @@ def main():
     candidates = build_nodes(bool(ipv6))
 
     if args.no_probe:
+        selected = candidates
+        notes = {(s, p): "未测速" for s, p in candidates}
         health = {
             "checkedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "skipped": True, "total": len(candidates), "healthy": 0, "dropped": 0,
-            "ports": [], "nodes": [], "hints": ["本次运行跳过了测速，节点按默认顺序发布。"],
+            "skipped": True, "total": len(candidates), "verified": 0,
+            "unverified": len(candidates), "published": len(candidates),
+            "dropped": 0, "ports": [], "nodes": [],
+            "hints": ["本次运行跳过测速，端点池按原样发布（未验证）。"],
         }
-        selected = candidates
-        latency_map = {}
     else:
-        print(f"测速 {len(candidates)} 个端点（超时 {args.timeout}s，阈值 {args.max_latency}ms）…")
-        results = probe_all(candidates, args.timeout)
-        health = build_health(results, args.max_latency)
-        latency_map = {(r["server"], r["port"]): r["latencyMs"] for r in results if r["ok"]}
-        healthy = [(r["server"], r["port"]) for r in health["nodes"] if r["kept"]]
-        if healthy:
-            selected = healthy
+        print(f"探测 {len(candidates)} 个端点（QUIC，超时 {args.timeout}s，阈值 {args.max_latency}ms）…")
+        has_ipv6 = host_has_ipv6()
+        print("Runner IPv6 出口:", "有" if has_ipv6 else "无（IPv6 端点标注为未验证，不探测）")
+        if has_ipv6:
+            results = probe_all(candidates, args.timeout)
         else:
-            # 全部失败时不要发布空订阅：保留全量并在 health.json 里说明原因
-            selected = candidates
-            health["fallback"] = True
+            # 没有 IPv6 出口就别浪费超时等待，直接标记为未验证
+            results = probe_all([c for c in candidates if _family(c[0]) == "v4"], args.timeout)
+            results += [dict(server=s, port=p, family="v6", ok=False, latencyMs=None,
+                             method="跳过", error="Runner 无 IPv6 出口", unroutable=True)
+                        for s, p in candidates if _family(s) == "v6"]
+        nodes, v6_unroutable = classify(results, args.max_latency, has_ipv6)
+        kept = [(n["server"], n["port"]) for n in nodes if n["kept"]]
+        # 全部失败时不要发布空订阅：退回全量端点并在 health.json 说明
+        selected = kept or candidates
         if args.top and args.top > 0:
             selected = selected[:args.top]
+        notes = {}
+        for node in nodes:
+            key = (node["server"], node["port"])
+            if not node["kept"]:
+                continue
+            notes[key] = f"延迟 {node['latencyMs']}ms" if node["verified"] else f"未验证（{node['reason']}）"
+        health = make_health(results, nodes, len(selected), args.max_latency, v6_unroutable)
+        if not kept:
+            health["fallback"] = True
 
     names = []
     proxy_lines = []
@@ -391,9 +510,8 @@ def main():
     for server, port in selected:
         name = f"WARP | {server} | {port}"
         names.append(name)
-        latency = latency_map.get((server, port))
         proxy_lines.append(proxy_block(name, server, port, private_key, public_key,
-                                       ipv4, ipv6, f"{latency}ms" if latency else "未测速"))
+                                       ipv4, ipv6, notes.get((server, port), "未测速")))
         links.append(masque_link(name, server, port, private_key, public_key, ipv4))
 
     name_block = "\n".join(f'      - "{name}"' for name in names)
@@ -405,12 +523,14 @@ def main():
     rules = "\n".join(
         f"  - RULE-SET,{item},{'DIRECT' if item in ('private', 'cn') else '节点选择'}" for item in sets
     )
+    latency_map = {(n["server"], n["port"]): n["latencyMs"]
+                   for n in health.get("nodes", []) if n["verified"]}
     best = selected[0]
     best_latency = latency_map.get(best)
 
     yaml = f"""# Cloudflare WARP MASQUE 订阅 · GitHub Actions 自动生成
 # 生成时间: {local_stamp()}
-# 节点: {len(selected)} 个（已按测速结果从快到慢排序，剔除不可达端点）
+# 节点: {len(selected)} 个（已验证端点按延迟升序在前，未验证端点在后）
 # 内核: {KERNEL_HINT}
 # private-key 等同账号凭据，请勿公开转发
 mode: rule
@@ -525,7 +645,8 @@ rules:
         "generatedAt": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generatedAtLocal": local_stamp(),
         "nodes": len(selected),
-        "healthy": health.get("healthy", 0),
+        "verified": health.get("verified", 0),
+        "unverified": health.get("unverified", 0),
         "dropped": health.get("dropped", 0),
         "probed": not args.no_probe,
         "bestEndpoint": {"server": best[0], "port": best[1], "latencyMs": best_latency},
@@ -533,23 +654,29 @@ rules:
         "formats": [k for k, v in exports.items() if v is True],
         "blockedFormatReason": blocked_reason,
     }
+
+    # 快照必须在写 meta.json 之前，否则 version 字段写不进 meta
+    if args.history_dir:
+        summary = {
+            "nodes": len(selected),
+            "verified": health.get("verified", 0),
+            "bestLatencyMs": best_latency,
+            "bestEndpoint": f"{best[0]}:{best[1]}",
+        }
+        meta["version"] = write_history(
+            args.history_dir, yaml, links_text,
+            json.dumps(config, ensure_ascii=False, indent=2) + "\n",
+            summary, max(1, args.keep),
+        )
+
     with open(os.path.join(outdir, "meta.json"), "w", encoding="utf-8") as handle:
         json.dump(meta, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
 
-    if args.history_dir:
-        summary = {
-            "nodes": len(selected),
-            "healthy": health.get("healthy", 0),
-            "bestLatencyMs": best_latency,
-            "bestEndpoint": f"{best[0]}:{best[1]}",
-        }
-        meta["version"] = write_history(args.history_dir, yaml, summary, max(1, args.keep))
-
     print(f"生成 {len(selected)} 个 MASQUE 节点 -> {outdir}")
     if not args.no_probe:
-        print(f"健康节点 {health.get('healthy', 0)}/{health.get('total', 0)}，"
-              f"最优 {best[0]}:{best[1]} {best_latency}ms")
+        print(f"已验证 {health.get('verified', 0)}/{health.get('total', 0)}，"
+              f"未验证 {health.get('unverified', 0)}，最优 {best[0]}:{best[1]} {best_latency}ms")
     produced = ["warp-masque.yaml", "warp-masque-links.txt", "health.json", "meta.json"]
     if exports.get("wireguard"):
         produced += ["warp-masque.conf", "warp-masque-singbox.json"]

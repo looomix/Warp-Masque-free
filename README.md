@@ -7,8 +7,9 @@
 | 能力 | 说明 |
 | --- | --- |
 | 云端生成 | Runner 内运行 `usque` 注册设备 |
-| 测速优选 | 并发探测 4 端点 × 4 端口，剔除不可达端点，按延迟排序写入订阅 |
-| 版本回滚 | 保留最近 N 份快照，页面可查看/下载，`rollback.yml` 一键回滚 |
+| 节点池 | MASQUE 固定池：v4×4 + v6×4 地址 × 7 端口（443/500/1701/4500/4443/8443/8095），共 56 个 |
+| 探测优选 | QUIC 版本协商探测（UDP 真实可达），已验证的按延迟升序在前，不可达的剔除 |
+| 版本回滚 | 快照含订阅 + 链接 + 账号三件套，页面可查看/下载，`rollback.yml` 回滚后三者一起还原 |
 | 多格式导出 | Clash YAML、sing-box JSON、WireGuard `.conf`、`masque://` 链接 |
 | 连通性自检 | Runner 测速报告 + 浏览器实测，失败给出端口 / SNI / 内核版本提示 |
 | 手动触发 | 手动运行 Actions 生成，页面显示上次生成时间与节点状态 |
@@ -19,7 +20,7 @@
 1. 打开 Actions 中的 `generate-warp.yml`，点 **Run workflow**。
 2. 可设设备名、是否测速、延迟阈值、快照数量、`commit` 与 artifact 保留天数。
    `commit` 默认关闭，勾选后才会把含私钥的配置提交到仓库（页面订阅随之更新）。
-3. 工作流依次完成：下载 `usque` 并注册设备 → 测速筛选端点 → `scripts/generate.py` 生成订阅/多格式配置/`health.json`/`meta.json`/快照 → `scripts/validate.py` 校验 → 上传 artifact，按需提交回仓库。
+3. 工作流依次完成：下载 `usque` 并注册设备 → 探测端点 → `scripts/generate.py` 生成订阅/多格式配置/`health.json`/`meta.json`/快照 → `scripts/validate.py` 校验 → 上传 artifact，按需提交回仓库。
 4. 订阅地址在站点页面查看。
 
 仅手动触发，无定时任务。
@@ -35,6 +36,7 @@
 账号 JSON 粘贴到输入框，点“从账号 JSON 生成输出”即可在本地得到各格式配置，不上传任何数据。
 
 > 需要 **mihomo Alpha** 内核，稳定版不支持 `type: masque`。
+> 引用订阅的节点是同一个 WARP 账号的不同接入地址，出口 IP 相同；多节点解决的是某个 IP/端口被墙或限速时能自动换一个，不是多地区落地。
 > `.conf` 与 sing-box 需 32 字节 X25519 私钥；`usque` 账号为 EC P-256，无法直接转换（`wgcf` 账号可导出）。
 
 ## 隐私
@@ -54,12 +56,11 @@ scripts/generate.py                   测速 + 多格式生成 + 快照 + meta
 scripts/validate.py                   订阅结构校验
 .github/workflows/generate-warp.yml   生成工作流
 .github/workflows/rollback.yml        版本回滚
-.github/workflows/pages-health.yml    Pages 健康检查
 configs/warp-masque.yaml              当前订阅
 configs/usque-config.json             原始账号
 configs/meta.json                     生成时间 / 节点统计
 configs/health.json                   端点测速报告
-configs/history/                      历史快照与 index.json
+configs/history/                      历史快照（yaml/txt/json）与 index.json
 LICENSE / NOTICE                      许可与出处
 .nojekyll                             GitHub Pages 标记
 ```

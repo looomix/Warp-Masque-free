@@ -255,16 +255,21 @@
     return lines.join("\n");
   }
 
+  const MASQUE_V4 = ["162.159.198.1", "162.159.198.2", "162.159.199.1", "162.159.199.2"];
+  const MASQUE_V6 = ["2606:4700:103::1", "2606:4700:103::2", "2606:4700:104::1", "2606:4700:104::2"];
+  const MASQUE_PORTS = [443, 500, 1701, 4500, 4443, 8443, 8095];
+
   function nodeList() {
     const wantV6 = $("#ipv6").checked;
     const mode = $("#endpointMode").value;
-    const ports = $("#portMode").value === "random" ? [443, 4443, 8443, 8095] : [Number($("#portMode").value)];
+    const portValue = $("#portMode").value;
+    const ports = portValue === "all" ? MASQUE_PORTS : [Number(portValue)];
     let servers;
-    if (mode === "v6") servers = wantV6 ? ["2606:4700:103::2", "2606:4700:104::2"] : [];
-    else if (mode === "v4") servers = ["162.159.198.2", "162.159.199.2"];
+    if (mode === "v6") servers = wantV6 ? [...MASQUE_V6] : [];
+    else if (mode === "v4") servers = [...MASQUE_V4];
     else {
-      servers = ["162.159.198.2", "162.159.199.2"];
-      if (wantV6) servers.push("2606:4700:103::2", "2606:4700:104::2");
+      servers = [...MASQUE_V4];
+      if (wantV6) servers.push(...MASQUE_V6);
     }
     if (!servers.length) throw new Error("请启用 IPv6 或更换 Endpoint 范围");
     return servers.flatMap((server) => ports.map((port) => ({ server, port })));
@@ -291,7 +296,8 @@
   }
 
   function rulesBlock() {
-    if (!$("#rules").checked) return "";
+    // 关掉分流规则时也必须留一条 MATCH，否则 mihomo 在 rule 模式下会全部直连
+    if (!$("#rules").checked) return "\nrules:\n  - MATCH,节点选择\n";
     const base = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite";
     const sets = ["private", "cn", "google", "youtube", "telegram", "github", "microsoft", "apple"];
     const providers = sets.map((n) => `  ${n}: {type: http, behavior: domain, format: mrs, url: "${base}/${n}.mrs", interval: 86400}`).join("\n");
@@ -323,7 +329,6 @@
       .replace("__DNS_MODE__", "fake-ip")
       .replace("__PROXIES__", proxies)
       .replace(/__PROXY_NAMES__/g, `[${names}]`)
-      .replace("__OFFICIAL_NAMES__", `[${names}]`)
       .replace(/__TEST_URL__/g, $("#testUrl").value.trim() || TRACE_URL)
       .replace(/__TEST_INTERVAL__/g, "300")
       .replace(/__TEST_TOLERANCE__/g, "30")
@@ -502,7 +507,10 @@
     $("#statLast").textContent = meta.rolledBackTo
       ? `${lastText}（回滚至 ${meta.rolledBackTo}）`
       : lastText;
-    $("#statNodes").textContent = `${meta.nodes ?? "—"} / ${meta.probed ? (meta.healthy ?? 0) : "未测速"}`;
+    const verifiedText = meta.probed
+      ? `${meta.verified ?? meta.healthy ?? 0}`
+      : "未测速";
+    $("#statNodes").textContent = `${meta.nodes ?? "—"} / ${verifiedText}`;
     const best = meta.bestEndpoint && meta.bestEndpoint.latencyMs;
     $("#statBest").textContent = best != null
       ? `${best} ms · :${meta.bestEndpoint.port}`
@@ -534,22 +542,28 @@
       hints.innerHTML = '<p class="hint">最近一次生成跳过了测速（--no-probe），节点按默认顺序发布。</p>';
       return;
     }
-    const rows = (health.nodes || []).slice(0, 20).map((n) => {
+    const verified = health.verified ?? health.healthy ?? 0;
+    const unverified = health.unverified ?? 0;
+    const rows = (health.nodes || []).map((n) => {
       let cls = "fail";
       let label = "失败";
-      if (n.ok && n.kept !== false) {
+      if (n.verified && n.kept !== false) {
         cls = "ok";
-        label = "可达";
-      } else if (n.ok) {
+        label = "已验证";
+      } else if (n.kept) {
+        cls = "warn";
+        label = "未验证";
+      } else if (n.verified) {
         cls = "warn";
         label = "超阈值";
       }
-      return `<tr><td><code>${n.server}</code></td><td>${n.port}</td><td><span class="badge ${cls}">${label}</span></td><td>${n.ok && n.latencyMs != null ? n.latencyMs + " ms" : "—"}</td><td>${n.method || "—"}</td><td>${n.error ? `<span class="err">${n.error}</span>` : "—"}</td></tr>`;
+      const detail = n.error ? `<span class="err">${n.error}</span>` : (n.reason || "—");
+      return `<tr><td><code>${n.server}</code></td><td>${n.port}</td><td><span class="badge ${cls}">${label}</span></td><td>${n.latencyMs != null ? n.latencyMs + " ms" : "—"}</td><td>${n.method || "—"}</td><td>${detail}</td></tr>`;
     }).join("");
     table.innerHTML = `
       <div class="table-head">
-        <b>端点测速</b>
-        <span>${fmtLocal(health.checkedAt)} · 健康 ${health.healthy}/${health.total} · 剔除 ${health.dropped} · 阈值 ${health.maxLatency}ms</span>
+        <b>端点探测（QUIC）</b>
+        <span>${fmtLocal(health.checkedAt)} · 已验证 ${verified}/${health.total} · 未验证 ${unverified} · 剔除 ${health.dropped} · 阈值 ${health.maxLatency}ms</span>
       </div>
       <table class="data-table">
         <thead><tr><th>端点</th><th>端口</th><th>结果</th><th>延迟</th><th>方式</th><th>错误</th></tr></thead>
@@ -593,10 +607,11 @@
 
     const health = state.health;
     if (health && !health.skipped) {
-      const kind = health.healthy > 0 ? "ok" : "fail";
+      const verified = health.verified ?? health.healthy ?? 0;
+      const kind = verified > 0 ? "ok" : "fail";
       const portText = (health.ports || []).map((p) => `${p.port}: ${p.ok}/${p.ok + p.fail}`).join("，");
-      rows.push(checkRow(kind, `端点测速 ${health.healthy}/${health.total} 可达`,
-        `${fmtLocal(health.checkedAt)} 由 Runner 探测 · 端口成功/总数 ${portText || "—"}`));
+      rows.push(checkRow(kind, `端点探测 ${verified}/${health.total} 已验证`,
+        `${fmtLocal(health.checkedAt)} 由 Runner 用 QUIC 版本协商探测 · 未验证 ${health.unverified ?? 0} · 端口成功/总数 ${portText || "—"}`));
       (health.hints || []).forEach((h) => hints.push(h));
     } else {
       rows.push(checkRow("warn", "没有测速报告", "configs/health.json 缺失或本次生成跳过了测速。"));
@@ -639,7 +654,7 @@
         <div class="vmain">
           <b>${v.version}</b>
           <span class="vtag">${index === 0 ? "最新" : `-${index}`}</span>
-          <p>${fmtLocal(v.createdAt) || v.createdAtLocal || "—"} · ${v.nodes ?? "?"} 个节点 · 健康 ${v.healthy ?? "?"} · 最优 ${best}${v.bestEndpoint ? ` (${v.bestEndpoint})` : ""}</p>
+          <p>${fmtLocal(v.createdAt) || v.createdAtLocal || "—"} · ${v.nodes ?? "?"} 个节点 · 已验证 ${v.verified ?? v.healthy ?? "?"} · 最优 ${best}${v.bestEndpoint ? ` (${v.bestEndpoint})` : ""}</p>
         </div>
         <div class="vactions">
           <button type="button" class="btn btn-mini" data-view="${v.version}">查看</button>

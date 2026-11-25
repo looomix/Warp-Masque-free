@@ -27,7 +27,7 @@
 
         <div class="statusbar" id="statusbar">
           <div class="stat"><span>上次生成</span><b id="statLast">读取中…</b></div>
-          <div class="stat"><span>节点 / 健康</span><b id="statNodes">—</b></div>
+          <div class="stat"><span>节点 / 已验证</span><b id="statNodes">—</b></div>
           <div class="stat"><span>最优延迟</span><b id="statBest">—</b></div>
         </div>
       </section>
@@ -56,9 +56,9 @@
           <div class="field-grid">
             <div class="field"><label>AWG 档位（仅影响 .conf）</label><select id="profile"><option value="legacy">AWG 1.5 Legacy</option><option value="awg2" selected>AWG 2.0（推荐）</option><option value="awg3">AWG 3.0 WARP-safe</option><option value="awg31">AWG 3.1 WARP-safe</option></select></div>
             <div class="field"><label>MASQUE 模式</label><select id="network"><option value="h3">H3（默认）</option><option value="h2">H2</option><option value="h3-l4proxy">H3-L4</option></select></div>
-            <div class="field"><label>Endpoint 范围</label><select id="endpointMode"><option value="all">全部（官方 v4 + v6）</option><option value="v4">仅 IPv4</option><option value="v6">仅 IPv6</option></select></div>
+            <div class="field"><label>Endpoint 范围</label><select id="endpointMode"><option value="all">全部（v4×4 + v6×4）</option><option value="v4">仅 IPv4</option><option value="v6">仅 IPv6</option></select></div>
             <div class="field"><label>WG 端口</label><select id="wgPort"><option>2408</option><option>4500</option><option>500</option><option>1701</option></select></div>
-            <div class="field"><label>MASQUE 端口</label><select id="portMode"><option value="random">随机（443/4443/8443/8095）</option><option>443</option><option>4443</option><option>8443</option><option>8095</option></select></div>
+            <div class="field"><label>MASQUE 端口</label><select id="portMode"><option value="all">全部（443/500/1701/4500/4443/8443/8095）</option><option>443</option><option>500</option><option>1701</option><option>4500</option><option>4443</option><option>8443</option><option>8095</option></select></div>
             <div class="field"><label for="sni">SNI</label><input id="sni" type="text" value="www.cloudflareaccess.com" /></div>
             <div class="field"><label for="cc">拥塞控制</label><select id="cc"><option>bbr</option><option>cubic</option><option>reno</option></select></div>
             <div class="field"><label for="testUrl">延迟测试地址</label><input id="testUrl" type="text" value="https://cloudflare.com/cdn-cgi/trace" /></div>

@@ -7,7 +7,7 @@ on:
         description: 目标版本号（例如 20261125-101500，可在网页“配置版本”列表复制）
         required: true
       keep_current:
-        description: 回滚前先把当前 YAML 另存为一份快照
+        description: 回滚前先把当前配置另存为一份快照
         type: boolean
         required: false
         default: true
@@ -36,14 +36,26 @@ jobs:
             ls -1 configs/history/ | grep -E '^warp-masque-.*\.yaml$' || true
             exit 1
           fi
-          mkdir -p configs/history
           if [ "${KEEP_CURRENT}" != "false" ] && [ -f configs/warp-masque.yaml ]; then
-            STAMP="$(date -u +%Y%m%d-%H%M%S)"
-            cp configs/warp-masque.yaml "configs/history/warp-masque-${STAMP}-prerollback.yaml"
+            STAMP="$(TZ=Asia/Shanghai date +%Y%m%d-%H%M%S)"
+            SAFE="${STAMP}-prerollback"
+            cp configs/warp-masque.yaml "configs/history/warp-masque-${SAFE}.yaml"
+            cp configs/warp-masque-links.txt "configs/history/warp-masque-${SAFE}.txt" 2>/dev/null || true
+            cp configs/usque-config.json "configs/history/warp-masque-${SAFE}.json" 2>/dev/null || true
+            echo "PRE=${SAFE}" >> "$GITHUB_ENV"
           fi
           cp "$SRC" configs/warp-masque.yaml
+          # 有配套文件就一起还原，避免订阅与账号错配
+          if [ -f "configs/history/warp-masque-${VERSION}.txt" ]; then
+            cp "configs/history/warp-masque-${VERSION}.txt" configs/warp-masque-links.txt
+            cp "configs/history/warp-masque-${VERSION}.txt" configs/warp-masque-shadowrocket.txt
+          fi
+          if [ -f "configs/history/warp-masque-${VERSION}.json" ]; then
+            cp "configs/history/warp-masque-${VERSION}.json" configs/usque-config.json
+          fi
+          echo "已回滚到 ${VERSION}"
 
-      - name: 更新 meta.json
+      - name: 更新 meta.json 与版本索引
         shell: bash
         env:
           VERSION: ${{ inputs.version }}
@@ -51,25 +63,49 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import json, os
-          from datetime import datetime, timezone
+          from datetime import datetime, timedelta, timezone
+
           version = os.environ["VERSION"]
+          pre = os.environ.get("PRE") or ""
+          beijing = timezone(timedelta(hours=8))
           now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+          index_path = "configs/history/index.json"
+          try:
+              index = json.load(open(index_path, encoding="utf-8"))
+          except Exception:
+              index = {}
+          versions = index.get("versions") or []
+          entry = next((v for v in versions if v.get("version") == version), {})
+
+          # 回滚前快照也写进索引，否则下次生成会把它当孤儿文件删掉
+          if pre and not any(v.get("version") == pre for v in versions):
+              versions.insert(0, {
+                  "version": pre,
+                  "file": f"warp-masque-{pre}.yaml",
+                  "links": f"warp-masque-{pre}.txt",
+                  "account": f"warp-masque-{pre}.json",
+                  "createdAt": now,
+                  "createdAtLocal": datetime.now(beijing).strftime("%Y-%m-%d %H:%M:%S"),
+                  "nodes": 0,
+                  "verified": 0,
+                  "note": "回滚前自动备份",
+              })
+              index = {"updatedAt": now, "keep": index.get("keep", 10), "versions": versions}
+              json.dump(index, open(index_path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+              open(index_path, "a", encoding="utf-8").write("\n")
+
           path = "configs/meta.json"
           try:
               meta = json.load(open(path, encoding="utf-8"))
           except Exception:
               meta = {}
-          try:
-              index = json.load(open("configs/history/index.json", encoding="utf-8"))
-              entry = next((v for v in index.get("versions", []) if v.get("version") == version), {})
-          except Exception:
-              entry = {}
           meta["rolledBackTo"] = version
           meta["rolledBackAt"] = now
           meta["generatedAt"] = entry.get("createdAt", meta.get("generatedAt"))
           meta["generatedAtLocal"] = entry.get("createdAtLocal", meta.get("generatedAtLocal"))
           meta["nodes"] = entry.get("nodes", meta.get("nodes"))
-          meta["healthy"] = entry.get("healthy", meta.get("healthy"))
+          meta["verified"] = entry.get("verified", meta.get("verified", 0))
           json.dump(meta, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
           open(path, "a", encoding="utf-8").write("\n")
           print("meta.json 已更新:", version)
@@ -82,6 +118,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add configs/warp-masque.yaml configs/meta.json configs/history
+          for extra in configs/warp-masque-links.txt configs/warp-masque-shadowrocket.txt configs/usque-config.json; do
+            if [ -f "$extra" ]; then git add "$extra"; fi
+          done
           if git diff --cached --quiet; then
             echo "内容一致，无需提交"
           else
