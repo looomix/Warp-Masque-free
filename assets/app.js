@@ -11,6 +11,8 @@
   const hexText = (text) => Array.from(new TextEncoder().encode(text)).map((b) => b.toString(16).padStart(2, "0")).join("");
   const pemBody = (value) => String(value || "").replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/g, "").replace(/\s/g, "");
   const state = { account: null, canonicalYaml: "", manualOverride: false, outputs: { conf: "", yaml: "", sub: "" }, tab: "yaml" };
+  const CLEAR_DELAY = 60_000;
+  let clearTimer = null;
 
   function toast(message) {
     const el = $("#toast");
@@ -24,6 +26,24 @@
     const el = $("#accountStatus");
     el.textContent = message;
     el.style.color = error ? "#fda4af" : "";
+  }
+
+  function clearGeneratedContent() {
+    clearTimeout(clearTimer);
+    clearTimer = null;
+    state.account = null;
+    state.canonicalYaml = "";
+    state.manualOverride = false;
+    state.outputs = { conf: "", yaml: "", sub: "" };
+    $("#accountText").value = "";
+    $("#result").hidden = true;
+    $("#output").textContent = "";
+    status("页面敏感内容已自动清空。需要时请重新生成或刷新订阅。");
+  }
+
+  function scheduleAutoClear() {
+    clearTimeout(clearTimer);
+    clearTimer = setTimeout(clearGeneratedContent, CLEAR_DELAY);
   }
 
   function i1Payload() {
@@ -88,7 +108,7 @@
   function endpointNodes() {
     const wantV6 = $("#ipv6").checked;
     const mode = $("#endpointMode").value;
-    const ports = $("#portMode").value === "random" ? [443, 500, 1701, 4500] : [Number($("#portMode").value)];
+    const ports = $("#portMode").value === "random" ? [443, 4443, 8443, 8095] : [Number($("#portMode").value)];
     let servers;
     if (mode === "v6") servers = wantV6 ? ["2606:4700:103::2", "2606:4700:104::2"] : [];
     else if (mode === "v4") servers = ["162.159.198.2", "162.159.199.2"];
@@ -119,7 +139,7 @@
     const proxies = nodes
       .map((n) => {
         const name = `WARP | ${n.server} | ${n.port}`;
-        return `  - name: "${name}"\n    type: masque\n    server: ${n.server}\n    port: ${n.port}\n    private-key: ${a.privateKey}\n    public-key: ${pemBody(a.publicKey)}\n    ip: ${a.ipv4}${ipv6Line}\n    uri: https://cloudflareaccess.com\n    mtu: 1280\n    udp: ${$("#udp").checked}\n    remote-dns-resolve: true\n    congestion-controller: ${$("#cc").value}\n    sni: ${$("#sni").value.trim() || "www.cloudflareaccess.com"}${networkLine}`;
+        return `  - name: "${name}"\n    type: masque\n    server: ${n.server}\n    port: ${n.port}\n    private-key: ${a.privateKey}\n    public-key: ${pemBody(a.publicKey)}\n    ip: ${a.ipv4}${ipv6Line}\n    uri: https://cloudflareaccess.com\n    mtu: 1280\n    udp: ${$("#udp").checked}\n    remote-dns-resolve: true\n    congestion-controller: ${$("#cc").value}\n    dns: [ 1.1.1.1, 8.8.8.8 ]\n    sni: ${$("#sni").value.trim() || "www.cloudflareaccess.com"}${networkLine}`;
       })
       .join("\n\n");
     const names = nodes.map((n) => `"WARP | ${n.server} | ${n.port}"`).join(", ");
@@ -208,7 +228,8 @@
         parseAccount();
         state.manualOverride = true;
         render();
-        status("已从账号 JSON 本地生成配置（本地预览，可能与订阅内容不同）。");
+        status("已从账号 JSON 本地生成配置（本地预览）；页面敏感内容将在 60 秒后自动清空。");
+        scheduleAutoClear();
         toast("配置已生成");
       } catch (error) {
         toast(error.message);
@@ -278,7 +299,8 @@
       state.manualOverride = false;
     }
     render();
-    status(announce ? "订阅内容已刷新。" : "已自动载入 Actions 发布的配置。");
+    status(`${announce ? "订阅内容已刷新" : "已自动载入 Actions 发布的配置"}；页面敏感内容将在 60 秒后自动清空。`);
+    scheduleAutoClear();
   }
 
   bindEvents();
