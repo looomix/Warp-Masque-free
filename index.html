@@ -33,12 +33,13 @@
           <div class="step-head"><span>01</span><div><h3>云端一键生成</h3><p>参照 GitHub Actions 方案：Runner 内运行 usque 注册设备，生成 YAML 并提交到本仓库，GitHub Pages 直接作为订阅源。</p></div></div>
           <div class="account-actions">
             <a class="btn btn-primary" href="https://github.com/looomix/Warp-Masque-free/actions/workflows/generate-warp.yml" target="_blank" rel="noopener">在 Actions 中一键生成</a>
+            <button type="button" class="btn btn-mini" id="reloadSub">刷新订阅内容</button>
             <button type="button" class="btn btn-mini" id="loadDemo">填入示例账号</button>
           </div>
           <div class="field"><label>公开订阅地址（GitHub Pages）</label><div class="input-action"><input id="subRemote" type="text" value="https://looomix.github.io/Warp-Masque-free/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyRemote">复制</button></div></div>
           <div class="field"><label>镜像订阅地址（gh-proxy，便于网络受限环境拉取）</label><div class="input-action"><input id="subMirror" type="text" value="https://gh-proxy.com/https://raw.githubusercontent.com/looomix/Warp-Masque-free/main/configs/warp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyMirror">复制</button></div></div>
           <div class="field"><label>Clash 导入链接（使用镜像）</label><div class="input-action"><input id="clashImport" type="text" value="clash://install-config?url=https%3A%2F%2Fgh-proxy.com%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2Flooomix%2FWarp-Masque-free%2Fmain%2Fconfigs%2Fwarp-masque.yaml" readonly /><button type="button" class="btn btn-mini" id="copyImport">复制</button></div></div>
-          <p class="hint" id="accountStatus">Actions 生成完成后，账号 JSON 会自动填入下方输入框并生成预览。配置含私钥，公开仓库中请勿转发该订阅。</p>
+          <p class="hint" id="accountStatus">Actions 生成完成后，页面会自动读取账号 JSON 与订阅 YAML。默认工作流只上传 artifact，不会把私钥提交到仓库；如需公开订阅，请在运行时显式开启 commit。</p>
           <div class="field"><label for="accountText">账号 JSON（Actions 自动生成的 usque config.json；也可手动粘贴其他 WARP / MASQUE 账号）</label><textarea id="accountText" rows="5" spellcheck="false" placeholder='{ "private_key": "...", "endpoint_pub_key": "...", "ipv4": "172.16.0.2" }'></textarea></div>
         </div>
 
@@ -49,7 +50,7 @@
             <div class="field"><label>MASQUE 模式</label><select id="network"><option value="h3">H3（默认）</option><option value="h2">H2</option><option value="h3-l4proxy">H3-L4</option></select></div>
             <div class="field"><label>Endpoint 范围</label><select id="endpointMode"><option value="all">全部（官方 v4 + v6）</option><option value="v4">仅 IPv4</option><option value="v6">仅 IPv6</option></select></div>
             <div class="field"><label>WG 端口</label><select id="wgPort"><option>2408</option><option>4500</option><option>500</option><option>1701</option></select></div>
-            <div class="field"><label>MASQUE 端口</label><select id="portMode"><option value="random">随机（443/500/1701/4500/8095）</option><option>443</option><option>500</option><option>1701</option><option>4500</option><option>8095</option></select></div>
+            <div class="field"><label>MASQUE 端口</label><select id="portMode"><option value="random">随机（443/500/1701/4500）</option><option>443</option><option>500</option><option>1701</option><option>4500</option></select></div>
             <div class="field"><label for="sni">SNI</label><input id="sni" type="text" value="www.cloudflareaccess.com" /></div>
             <div class="field"><label for="cc">拥塞控制</label><select id="cc"><option>bbr</option><option>cubic</option><option>reno</option></select></div>
             <div class="field"><label for="testUrl">延迟测试地址</label><input id="testUrl" type="text" value="https://cloudflare.com/cdn-cgi/trace" /></div>
@@ -68,16 +69,16 @@
           </div>
           <div class="tabs"><button type="button" class="tab active" data-tab="conf">WireGuard .conf</button><button type="button" class="tab" data-tab="yaml">Clash YAML</button><button type="button" class="tab" data-tab="sub">订阅链接</button></div>
           <pre class="codebox" id="output"></pre>
-          <p class="hint note">配置与订阅链接都包含私钥，请当作凭据保管。静态站点不保存任何账号；刷新页面后请重新粘贴或用 Worker 重新注册。</p>
+          <p class="hint note">配置与订阅链接都包含私钥，请当作凭据保管。静态站点不保存任何账号；刷新页面后请重新粘贴账号，或重新运行 Actions。</p>
         </section>
       </section>
 
       <section class="wrap section" id="how">
         <div class="section-head"><div><p class="kicker">HOW</p><h2>工作原理</h2></div></div>
         <div class="grid-3">
-          <article class="card mini"><span>01</span><h3>本地生成密钥</h3><p>浏览器用 Web Crypto 生成 X25519（WireGuard）与 P-256（MASQUE）密钥对，私钥不会离开设备。</p></article>
-          <article class="card mini"><span>02</span><h3>Worker 注册设备</h3><p>你部署的 Cloudflare Worker 转发注册请求到 Cloudflare API，并把 AES/设备令牌返回给页面。</p></article>
-          <article class="card mini"><span>03</span><h3>多格式输出</h3><p>本地组装 AWG/WireGuard .conf、MASQUE Clash YAML，并用 Worker 生成可直接导入的订阅地址。</p></article>
+          <article class="card mini"><span>01</span><h3>Actions 注册设备</h3><p>工作流在 GitHub Runner 中运行 usque 完成 WARP/MASQUE 设备注册，密钥只在 Runner 与产物中短暂存在。</p></article>
+          <article class="card mini"><span>02</span><h3>脚本生成订阅</h3><p><code>scripts/generate.py</code> 把账号转换为 Mihomo 兼容的 MASQUE YAML，并做结构与字段校验。</p></article>
+          <article class="card mini"><span>03</span><h3>静态站点托管</h3><p>可选择把 YAML 提交到仓库，由 GitHub Pages 与 gh-proxy 镜像提供订阅；页面本地只做读取和预览。</p></article>
         </div>
       </section>
 
@@ -87,7 +88,7 @@
           <details><summary>为什么用 GitHub Actions？</summary><p>Cloudflare 注册接口不允许浏览器跨域调用，而 GitHub Actions 的 Runner 是服务端环境，可以直接运行 usque 完成注册。生成的 YAML 提交回仓库后，GitHub Pages 就能作为公开订阅源，不需要 Cloudflare Worker。</p></details>
           <details><summary>AWG 档位会改变 WARP 服务端吗？</summary><p>不会。Cloudflare 始终是标准 WireGuard peer；AWG 1.5/2.0/3.x 参数只写在客户端配置的 Interface 段，用于握手伪装与填充。</p></details>
           <details><summary>订阅链接格式？</summary><p>Actions 生成的订阅地址是 <code>https://looomix.github.io/Warp-Masque-free/configs/warp-masque.yaml</code>，可直接填入 Clash / Mihomo（需要 Alpha 内核支持 masque）。每次重新运行工作流都会替换成全新账号。</p></details>
-          <details><summary>合规说明</summary><p>非官方项目，与 Cloudflare、Amnezia、m2c 作者无关联。使用 WARP 请遵守 Cloudflare 条款与所在地区法律。</p></details>
+          <details><summary>合规说明</summary><p>非官方项目，与 Cloudflare、Amnezia 无关联。使用 WARP 请遵守 Cloudflare 条款与所在地区法律。</p></details>
         </div>
       </section>
     </main>
