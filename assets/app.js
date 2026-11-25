@@ -10,18 +10,6 @@
   const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
   const hexText = (text) => Array.from(new TextEncoder().encode(text)).map((b) => b.toString(16).padStart(2, "0")).join("");
   const pemBody = (value) => String(value || "").replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/g, "").replace(/\s/g, "");
-  const b64urlEncode = (text) => {
-    let bin = "";
-    new TextEncoder().encode(text).forEach((b) => (bin += String.fromCharCode(b)));
-    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-  };
-  const b64urlDecode = (value) => {
-    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-    const bin = atob(padded);
-    return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
-  };
-
   const state = { account: null, canonicalYaml: "", manualOverride: false, outputs: { conf: "", yaml: "", sub: "" }, tab: "yaml" };
 
   function toast(message) {
@@ -261,21 +249,6 @@
     });
   }
 
-  function restoreHash() {
-    const match = location.hash.match(/^#sub=(.+)$/);
-    if (!match) return;
-    try {
-      const yaml = b64urlDecode(match[1]);
-      state.outputs.yaml = yaml;
-      state.outputs.sub = location.href;
-      $("#result").hidden = false;
-      showTab("yaml");
-      status("已从订阅链接恢复 YAML。");
-    } catch {
-      toast("订阅链接解析失败");
-    }
-  }
-
   async function loadPublishedConfig(announce = false) {
     status("正在读取已发布的配置…");
     const stamp = Date.now();
@@ -309,6 +282,5 @@
   }
 
   bindEvents();
-  restoreHash();
   loadPublishedConfig();
 })();
